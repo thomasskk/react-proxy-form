@@ -1,0 +1,34 @@
+import { isProxy } from './createValueProxy'
+import dotPathReader from './dotPathReader'
+import { isObject, isObjWritable } from './isHelper'
+
+const set = (object: Record<string, any>, path: string, value?: unknown) => {
+  const arrPath = dotPathReader(path)
+  const length = arrPath.length
+
+  arrPath.reduce((acc, cv, index) => {
+    switch (true) {
+      case index === length - 1:
+        if (value) {
+          acc[cv] = value
+        }
+        break
+      case acc[cv][isProxy]:
+        break
+      case isObject(acc[cv]) && !isObjWritable(acc, cv):
+        acc[cv] = { ...acc[cv] }
+        break
+      case Array.isArray(acc[cv]):
+        break
+      case typeof arrPath[index + 1] === 'number':
+        acc[cv] = []
+        break
+      default:
+        acc[cv] = {}
+    }
+
+    return acc[cv]
+  }, object)
+}
+
+export default set
