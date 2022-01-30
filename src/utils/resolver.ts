@@ -24,6 +24,7 @@ export const resolver = (
   schema: ObjectType,
   values: Record<string, any>,
   errors: any,
+  _name?: string,
   _match: [string, string, string][] = []
 ) => {
   let issues: ValitaError['issues'] | undefined
@@ -32,18 +33,22 @@ export const resolver = (
     schema.parse(values)
   } catch (error: unknown) {
     if (error instanceof ValitaError) {
+      console.log(error)
+
       issues = error.issues
     } else {
       console.error(error)
     }
   }
 
-  for (const [field1, field2, message] of _match) {
-    const field1Value = get(values, field1)
-    const field2Value = get(values, field2)
+  if (!_name) {
+    for (const [field1, field2, message] of _match) {
+      const field1Value = get(values, field1)
+      const field2Value = get(values, field2)
 
-    if (field1Value !== field2Value) {
-      errors[field2] = message
+      if (field1Value !== field2Value) {
+        errors[field2] = message
+      }
     }
   }
 
@@ -55,12 +60,17 @@ export const resolver = (
     const name = issue?.path?.reduce(
       (p, c) => `${p}.${typeof c === 'number' ? `[${c}]` : c}`
     )
-
     const message = getFailureMessage(issue.code)
 
-    if (name) {
+    if (name !== undefined) {
       errors[name] = { code: 'UPDATE', value: message }
+      if (name === _name) {
+        return true
+      }
     }
+  }
+  if (_name) {
+    return false
   }
 
   return true

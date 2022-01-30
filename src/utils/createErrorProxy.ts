@@ -1,8 +1,9 @@
 export type ErrorProxyCode =
-  | { code: 'INIT'; update: () => void; value?: never }
-  | { code: 'UPDATE'; value: string; update?: never }
-  | { code: 'RESET'; value?: never; update?: never }
-  | { code: 'RESET_WITH_UPDATE'; value?: never; update?: never }
+  | { code: 'INIT'; update: () => void }
+  | { code: 'UPDATE'; value: string }
+  | { code: 'RESET_AND_UPDATE' }
+  | { code: 'REFRESH' }
+  | { code: 'RESET' }
 
 type Store = {
   initStore: Map<string, () => void>
@@ -32,10 +33,12 @@ const createErrorProxy = () =>
           udpateValue()
           return true
         }
-        if (v.code === 'RESET') {
-          Reflect.set(t, 'mssgStore', new Map(), r)
+        if (v.code === 'REFRESH') {
+          t.mssgStore.delete(p)
+          t.initStore.get(p)?.()
+          return true
         }
-        if (v.code === 'RESET_WITH_UPDATE') {
+        if (v.code === 'RESET_AND_UPDATE') {
           Reflect.set(t, 'mssgStore', new Map(), r)
           for (const [, v] of t.initStore) {
             v()

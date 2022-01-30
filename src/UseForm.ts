@@ -11,8 +11,7 @@ import {
   SetValue,
   UseFormProps,
   UseFormRegister,
-  UseFormReturn,
-  ValueType
+  UseFormReturn
 } from './types'
 import createErrorProxy from './utils/createErrorProxy'
 import error from './utils/error'
@@ -51,10 +50,12 @@ export function UseForm<T>(
     DeepPartial<T> | undefined
   >(defaultValue)
 
-  const formSValue = useRef({ ..._sideValidation?.defaultValue } || {})
+  const formSValue = useRef(
+    { value: { ..._sideValidation?.defaultValue } } || { value: {} }
+  )
   const formSErrors = useRef<any>(createErrorProxy())
 
-  const formValue = useRef({ ...defaultValue } || {})
+  const formValue = useRef({ value: { ...defaultValue } } || { value: {} })
   const formErrors = useRef<any>(createErrorProxy())
 
   const prevErrors = useRef<any>(false)
@@ -63,10 +64,12 @@ export function UseForm<T>(
   const refEl = useRef<Map<string, RefElValue>>(new Map())
 
   const reset = () => {
-    formSValue.current = { ..._sideValidation?.defaultValue } || {}
-    formSErrors.current = { code: 'RESET' }
-    formValue.current = { ...defaultValue } || {}
-    formErrors.current.err = { code: 'RESET' }
+    formSValue.current = { value: { ..._sideValidation?.defaultValue } } || {
+      value: {},
+    }
+    formSErrors.current.err = { code: 'RESET_AND_UPDATE' }
+    formValue.current = { value: { ...defaultValue } } || { value: {} }
+    formErrors.current.err = { code: 'RESET_AND_UPDATE' }
     refEl.current = new Map()
   }
 
@@ -74,59 +77,85 @@ export function UseForm<T>(
     _setdefaultFormValue(value)
   }
 
-  const getAllValue = () => formValue.current as T
-  const getAllSideValue = () => formSValue.current as T
+  const getAllValue = () => formValue.current.value as T
+  const getAllSideValue = () => formSValue.current.value as T
 
-  const getValue: GetValue<T> = (path) => get(formValue.current, path)
-  const getSideValue: GetValue<T> = (path) => get(formSValue.current, path)
+  const getValue: GetValue<T> = (path) => get(formValue.current.value, path)
+  const getSideValue: GetValue<T> = (path) =>
+    get(formSValue.current.value, path)
 
   const setValue: SetValue<T> = (name, value) =>
-    set(formValue.current, name, value)
+    set(formValue.current.value, name, value)
   const setSideValue: SetValue<T> = (name, value) =>
-    set(formSValue.current, name, value)
+    set(formSValue.current.value, name, value)
 
-  const validate = () => {
+  const validate = (name: string, side: boolean) => {
+    const isValidation = _validation
+    const isSValidation = _sideValidation
+    let isError = false
+    if (!side && isValidation) {
+      isError = resolver(_validation, getAllValue(), formErrors.current, name)
+      if (!isError) {
+        formErrors.current[name] = { code: 'REFRESH' }
+      }
+    } else if (isSValidation) {
+      isError = resolver(
+        _sideValidation.validation!,
+        getAllSideValue(),
+        formSErrors.current,
+        name
+      )
+      if (!isError) {
+        formSErrors.current[name] = { code: 'REFRESH' }
+      }
+    }
+  }
+
+  const validateAll = () => {
     const isValidation = _validation
     const isSValidation = _sideValidation
     let isErrors = false
     let isSErrors = false
 
     if (isValidation) {
-      formErrors.current.err = { code: 'RESET' }
+      formErrors.current.err = { code: 'RESET_AND_UPDATE' }
 
       isErrors = resolver(
         _validation,
         getAllValue(),
         formErrors.current,
+        undefined,
         _match
       )
       if (!isErrors && prevErrors.current) {
-        formErrors.current.err = { code: 'RESET_WITH_UPDATE' }
-        return true
+        formErrors.current.err = { code: 'RESET_AND_UPDATE' }
       }
+      formErrors.current.err = { code: 'A' }
 
       prevErrors.current = isErrors
     }
 
     if (isSValidation) {
-      formSErrors.current.err = { code: 'RESET' }
+      formSErrors.current.err = { code: 'RESET_AND_UPDATE' }
 
       isSErrors = resolver(
         _sideValidation.validation!,
         getAllSideValue(),
         formSErrors.current,
+        undefined,
         _sideValidation.matchSide
       )
 
       if (!isSErrors && prevSErrors.current) {
-        formSErrors.current.err = { code: 'RESET' }
-        return true
+        formSErrors.current.err = { code: 'RESET_AND_UPDATE' }
       }
 
       prevSErrors.current = isSErrors
     }
+    console.log(isErrors, isSErrors)
+    console.log(formErrors.current, formSErrors.current)
 
-    return isSErrors && isErrors
+    return !isSErrors && !isErrors
   }
 
   const watchValue = (path: string) => watch(formValue.current, path)
@@ -135,7 +164,12 @@ export function UseForm<T>(
   const errors = (path: string) => error(formErrors.current, path)
   const sideErrors = (path: string) => error(formSErrors.current, path)
 
-  const setFormValue = (entry?: RefElValue, name?: string, prox?: any) => {
+  const setFormValue = (
+    entry?: RefElValue,
+    name?: string,
+    prox?: any,
+    side?: boolean
+  ) => {
     if (
       entry === undefined ||
       !entry.el ||
@@ -145,12 +179,14 @@ export function UseForm<T>(
       return
     }
 
+    const valueType = side ? entry.sideValueType : entry.valueType
+
     switch (entry.type) {
       // CHECKBOX
       case 'checkbox': {
-        if (entry.valueType === Boolean) {
+        if (valueType === Boolean) {
           if (entry.el?.values().next().value?.value) {
-            set(prox, name, entry.el?.values().next().value?.value)
+            set(prox, name, entry.el?.values().next().value?.value?.checked)
           }
           break
         }
@@ -158,11 +194,9 @@ export function UseForm<T>(
         for (const v of entry.el.values()) {
           if (v?.value) {
             if (v.value.checked) {
-              value.push((entry.valueType(v.value), v))
+              value.push(valueType(v.value))
             } else {
-              value = value.filter(
-                (v) => v !== (entry.valueType(v.value.value), v)
-              )
+              value = value.filter((v) => v !== valueType(v?.value?.value))
             }
           }
         }
@@ -173,13 +207,19 @@ export function UseForm<T>(
       case 'radio':
         for (const el of entry.el.values()) {
           if (el?.value?.checked) {
-            set(prox, name, (entry.valueType(el?.value?.value), el))
+            set(
+              prox,
+              name,
+              side
+                ? el.sideValueType(el?.value?.value)
+                : el.valueType(el?.value?.value)
+            )
           }
         }
         break
       // DEFAULT
       default: {
-        if (entry.el?.value === 'false' && entry.valueType === Boolean) {
+        if (entry.el?.value === 'false' && valueType === Boolean) {
           set(prox, name, false)
         } else {
           if (
@@ -189,7 +229,7 @@ export function UseForm<T>(
           ) {
             set(prox, name, undefined)
           } else {
-            set(prox, name, (entry.valueType(entry.el?.value), entry.el))
+            set(prox, name, valueType(entry.el?.value))
           }
         }
       }
@@ -202,10 +242,15 @@ export function UseForm<T>(
 
     for (const entry of refEl.current) {
       if (_autoUnregister && !entry[1].el) {
-        unset(formValue.current, entry[0])
-        unset(formSValue.current, entry[1].sideValueName)
+        unset(formValue.current.value, entry[0])
+        unset(formSValue.current.value, entry[1].sideValueName)
       } else {
-        setFormValue(entry[1], entry[1].sideValueName, formSValue.current)
+        setFormValue(
+          entry[1],
+          entry[1].sideValueName,
+          formSValue.current.value,
+          true
+        )
         if (!entry[1].registerSideOnly) {
           setFormValue(entry[1], entry[0], formValue.current)
         }
@@ -214,17 +259,18 @@ export function UseForm<T>(
 
     if (_setBeforeSubmit) {
       for (const [key, value] of Object.entries(_setBeforeSubmit)) {
-        set(formValue.current, key, value)
+        set(formValue.current.value, key, value)
       }
     }
 
-    if (!validate()) {
+    if (!validateAll()) {
       return
     }
+    console.log(formSValue.current.value)
 
     if (_setAfterSubmit) {
       for (const [key, value] of Object.entries(_setAfterSubmit)) {
-        set(formValue.current, key, value)
+        set(formValue.current.value, key, value)
       }
     }
 
@@ -235,45 +281,48 @@ export function UseForm<T>(
     }
   }
 
+  const valueDate = (value: string) =>
+    isStringDate(value) ? new Date(value).toISOString() : undefined
+
+  const defineType = (_type: any, _valueAs: any) => {
+    if (_valueAs instanceof Function) {
+      return _valueAs
+    }
+
+    switch (_type) {
+      case 'date':
+        return valueDate
+      case 'number':
+        return Number
+    }
+
+    switch (_valueAs) {
+      case 'string':
+        return String
+      case 'boolean':
+        return Boolean
+      case 'number':
+        return Number
+      case 'date':
+        return valueDate
+    }
+  }
+
   const register: UseFormRegister = (_name, _options = {}) => {
     const {
       type: _type = 'text',
       onChange: _onChange,
       valueAs: _valueAs = 'string',
+      sideValueAs: _sideValueAs = 'string',
       defaultValue: _defaultValue,
       sideValueName: _sideValueName,
       defaultChecked: _defaultChecked,
       registerSideOnly: _registerSideOnly = false,
     } = _options
 
-    let valueType: ValueType
-
-    const valueDate = (value: string) =>
-      isStringDate(value) ? new Date(value).toISOString() : undefined
-
-    switch (_type) {
-      case 'date':
-        valueType = valueDate
-        break
-      case 'number':
-        valueType = Number
-        break
-    }
-
-    switch (_valueAs) {
-      case 'string':
-        valueType = String
-        break
-      case 'boolean':
-        valueType = Boolean
-        break
-      case 'number':
-        valueType = Number
-        break
-      case 'date':
-        valueType = valueDate
-        break
-    }
+    // eslint-disable-next-line @typescript-eslint/ban-types
+    const valueType = defineType(_type, _valueAs)
+    const sideValueType = defineType(_type, _sideValueAs)
 
     let defaultValue: DefaultValue
 
@@ -290,13 +339,14 @@ export function UseForm<T>(
     return {
       onChange: (event: eventEl) => {
         if (!_registerSideOnly) {
-          setFormValue(refEl.current.get(_name), _name, formValue.current)
+          setFormValue(refEl.current.get(_name), _name, formValue.current.value)
         }
 
         setFormValue(
           refEl.current.get(_name),
           _sideValueName,
-          formSValue.current
+          formSValue.current.value,
+          true
         )
 
         if (
@@ -305,7 +355,7 @@ export function UseForm<T>(
             _sideValidation &&
             formSErrors.current?.[_sideValueName] !== undefined)
         ) {
-          validate()
+          validate(_name, _sideValueName !== undefined)
         }
 
         _onChange?.(event)
@@ -328,6 +378,7 @@ export function UseForm<T>(
               el: null,
               defaultValue,
               valueType,
+              sideValueType,
               type: _type,
               sideValueName: _sideValueName,
               registerSideOnly: _registerSideOnly,
@@ -338,6 +389,8 @@ export function UseForm<T>(
           if (refElValue) {
             refElValue.set(id, {
               value: element,
+              valueType,
+              sideValueType,
             })
           } else {
             refEl.current.set(_name, {
@@ -347,11 +400,13 @@ export function UseForm<T>(
                   {
                     value: element,
                     valueType,
+                    sideValueType,
                   },
                 ],
               ]),
               defaultValue,
               valueType,
+              sideValueType,
               type: _type,
               sideValueName: _sideValueName,
               registerSideOnly: _registerSideOnly,
@@ -362,6 +417,7 @@ export function UseForm<T>(
             el,
             defaultValue,
             valueType,
+            sideValueType,
             type: _type!,
             sideValueName: _sideValueName,
             registerSideOnly: _registerSideOnly,
@@ -369,10 +425,10 @@ export function UseForm<T>(
         }
         if (v !== undefined) {
           if (!_registerSideOnly) {
-            setFormValue(v, _name, formValue.current)
+            setFormValue(v, _name, formValue.current.value)
           }
           if (_sideValueName) {
-            setFormValue(v, _sideValueName, formSValue.current)
+            setFormValue(v, _sideValueName, formSValue.current.value, true)
           }
         }
       },

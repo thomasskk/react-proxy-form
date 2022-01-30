@@ -7,10 +7,16 @@ const createValueProxy = (v: any, setCb: () => void, key: string | number) =>
       return true
     },
     set: (target, p, value, receiver) => {
+      if (p !== key) {
+        Reflect.set(target, p, value, receiver)
+        return true
+      }
+
       const prevValue = Reflect.get(target, p, receiver)
 
       if (value === undefined && prevValue === undefined) {
         Reflect.deleteProperty(target, p)
+        return true
       }
 
       if (Object.is(prevValue, value)) {

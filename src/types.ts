@@ -91,7 +91,15 @@ export type UseFormReturn<T> = {
 }
 
 export type DefaultValue = string | number | Date | null | undefined
-export type ValueAs = 'string' | 'number' | 'boolean' | 'date' | undefined
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type ValueAs =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'date'
+  | undefined
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  | Function
 export type InputType =
   | 'checkbox'
   | 'radio'
@@ -107,6 +115,7 @@ export type UseFormRegisterOptions = {
   type?: InputType
   defaultValue?: DefaultValue
   valueAs?: ValueAs
+  sideValueAs?: ValueAs
   onChange?: (event: eventEl) => void
   defaultChecked?: boolean
   sideValueName?: string
@@ -149,6 +158,7 @@ type BaseRefElValue = {
   sideValueName?: string
   defaultValue: any
   valueType: ValueType
+  sideValueType: ValueType
 }
 
 export type RefElValue = BaseRefElValue &
@@ -159,6 +169,7 @@ export type RefElValue = BaseRefElValue &
           {
             value: HTMLInputElement
             valueType: ValueType
+            sideValueType: ValueType
           } | null
         > | null
         type: 'checkbox' | 'radio'

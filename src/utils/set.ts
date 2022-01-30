@@ -9,14 +9,16 @@ const set = (object: Record<string, any>, path: string, value?: unknown) => {
   arrPath.reduce((acc, cv, index) => {
     switch (true) {
       case index === length - 1:
-        if (value) {
+        if (value !== undefined) {
           acc[cv] = value
+        } else {
+          delete acc[cv]
         }
         break
-      case acc[cv][isProxy]:
+      case acc[cv]?.[isProxy]:
         break
-      case isObject(acc[cv]) && !isObjWritable(acc, cv):
-        acc[cv] = { ...acc[cv] }
+      case isObject(acc[cv]):
+        acc[cv] = !isObjWritable(acc, cv) ? { ...acc[cv] } : acc[cv]
         break
       case Array.isArray(acc[cv]):
         break
