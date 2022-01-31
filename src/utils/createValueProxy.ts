@@ -24,7 +24,7 @@ const createValueProxy = (v: any, setCb: () => void, key: string | number) =>
       }
 
       Reflect.set(target, p, value, receiver)
-      
+
       p === key && setCb?.()
       return true
     },

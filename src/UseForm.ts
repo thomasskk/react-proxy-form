@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useReducer, useRef, useState } from 'react'
 import {
   DeepPartial,
   DefaultValue,
@@ -46,6 +46,7 @@ export function UseForm<T>(
     resetOnSubmit: _resetOnSubmit,
     setAfterSubmit: _setAfterSubmit,
   } = props
+  const forceUpdate = useReducer((c) => c + 1, 0)[1]
 
   const [_defaultFormValue, _setdefaultFormValue] = useState<
     DeepPartial<T> | undefined
@@ -84,6 +85,7 @@ export function UseForm<T>(
     formErrors.current.err = { code: 'RESET' }
     formSErrors.current.err = { code: 'RESET' }
     updateStore.current.up = { code: 'UPDATE_ALL' }
+    forceUpdate()
   }
 
   const setDefaultValue: SetDefaultValue<T> = (value) => {
@@ -184,9 +186,6 @@ export function UseForm<T>(
 
       prevSErrors.current = isSErrors
     }
-    console.log(isErrors, isSErrors)
-    console.log(formErrors.current, formSErrors.current)
-
     return !isSErrors && !isErrors
   }
 
@@ -290,12 +289,14 @@ export function UseForm<T>(
         }
       }
     }
-
+    
     if (_setBeforeSubmit) {
       for (const [key, value] of Object.entries(_setBeforeSubmit)) {
         set(formValue.current.value, key, value)
       }
     }
+
+    console.log(getAllValue());
 
     if (!validateAll()) {
       return
@@ -306,7 +307,6 @@ export function UseForm<T>(
         set(formValue.current.value, key, value)
       }
     }
-
     callback(getAllValue())
 
     if (_resetOnSubmit) {

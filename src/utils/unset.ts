@@ -10,6 +10,25 @@ const unset = (object: Record<string, any>, path?: string) => {
   const arrPath = dotPathReader(path)
   const length = arrPath.length
 
+  if (length === 1) {
+    delete object[path]
+    return
+  }
+
+  if (length === 2) {
+    const p1 = arrPath[0]
+    const p2 = arrPath[1]
+    if (
+      !object[p1]?.[isProxy] &&
+      isObject(object[p1]) &&
+      Object.keys(object[p1]).length === 1 &&
+      object[p1][p2] !== undefined
+    ) {
+      delete object[p1]
+      return
+    }
+  }
+
   arrPath.reduce((acc, cv, index) => {
     switch (true) {
       case index === length - 1:

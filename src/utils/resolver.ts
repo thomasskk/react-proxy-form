@@ -33,6 +33,9 @@ export const resolver = (
     schema.parse(values)
   } catch (error: unknown) {
     if (error instanceof ValitaError) {
+      console.log(error)
+      console.log(values)
+
       issues = error.issues
     } else {
       console.error(error)
@@ -69,6 +72,7 @@ export const resolver = (
       }
     }
   }
+
   if (_name) {
     return false
   }
