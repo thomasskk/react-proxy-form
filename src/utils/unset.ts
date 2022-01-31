@@ -1,8 +1,9 @@
+import { isProxy } from './createValueProxy'
 import dotPathReader from './dotPathReader'
 import { isObject, isObjWritable } from './isHelper'
 
 const unset = (object: Record<string, any>, path?: string) => {
-  if (path === undefined) {
+  if (path === undefined || object === undefined) {
     return
   }
 
@@ -12,14 +13,18 @@ const unset = (object: Record<string, any>, path?: string) => {
   arrPath.reduce((acc, cv, index) => {
     switch (true) {
       case index === length - 1:
-        delete acc[cv]
+        if (acc !== undefined) {
+          delete acc[cv]
+        }
         break
-      case isObject(acc[cv]) && !isObjWritable(acc, cv):
-        acc[cv] = { ...acc[cv] }
+      case isObject(acc[cv]):
+        if (!isObjWritable(acc, cv) && !acc[cv]?.[isProxy]) {
+          acc[cv] = { ...acc[cv] }
+        }
         break
     }
 
-    return acc[cv]
+    return acc?.[cv]
   }, object)
 }
 

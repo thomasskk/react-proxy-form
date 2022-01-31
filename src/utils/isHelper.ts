@@ -8,9 +8,6 @@ export const isEmptyObject = (obj: any) => {
 }
 
 export const isObjWritable = (obj: any, key: string | number) => {
-  if (Array.isArray(obj)) {
-    return true
-  }
   return !!Object.getOwnPropertyDescriptor(obj, key)?.writable
 }
 

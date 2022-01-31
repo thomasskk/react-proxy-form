@@ -1,23 +1,21 @@
-import { useEffect, useLayoutEffect, useReducer, useRef } from 'react'
+import { useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react'
 import createValueProxy from './createValueProxy'
 import dotPathReader from './dotPathReader'
 import { isObject } from './isHelper'
-
 const useIsomorphicLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect
 
-const watch = (object: Record<string, any>, path: string) => {
+
+const watch = (object: Record<string, any>, path: string, updateStore: any) => {
+  const [depUpdate, forceDepUpdate] = useState(0)
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const value = useRef()
   const key = useRef<string | number>('')
-  const inc = useRef(0)
 
   useIsomorphicLayoutEffect(() => {
     const arrPath = dotPathReader(path)
     const length = arrPath.length
     key.current = arrPath[length - 1]
-
-    inc.current = inc.current + 1
     if (arrPath.length === 1) {
       object.value = createValueProxy(
         isObject(object.value) ? { ...object.value } : object.value,
@@ -38,8 +36,15 @@ const watch = (object: Record<string, any>, path: string) => {
         return acc[cv]
       }, object.value)
     }
+    updateStore[path] = {
+      code: 'SET',
+      update: () => forceDepUpdate((v) => v + 1),
+    }
     forceUpdate()
-  }, [])
+    return () => {
+      updateStore[path] = { code: 'DELETE' }
+    }
+  }, [depUpdate])
 
   return value.current?.[key.current]
 }

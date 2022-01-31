@@ -33,8 +33,6 @@ export const resolver = (
     schema.parse(values)
   } catch (error: unknown) {
     if (error instanceof ValitaError) {
-      console.log(error)
-
       issues = error.issues
     } else {
       console.error(error)
@@ -57,7 +55,9 @@ export const resolver = (
   }
 
   for (const issue of issues) {
-    const name = issue?.path?.reduce(
+    const path = issue.path?.length === 0 ? issue?.keys : issue.path
+
+    const name = path?.reduce(
       (p, c) => `${p}.${typeof c === 'number' ? `[${c}]` : c}`
     )
     const message = getFailureMessage(issue.code)
