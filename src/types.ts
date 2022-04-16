@@ -1,4 +1,4 @@
-import { ObjectType } from '@badrap/valita'
+import { ObjectType, Type } from '@badrap/valita'
 import { ChangeEvent } from 'react'
 
 export type Join<T extends unknown[], D extends string> = T extends []
@@ -49,7 +49,7 @@ type useFormBaseProps<T> = {
         matchSide?: never
       }
     | {
-        validation: ObjectType
+        validation: any
         matchSide?: [string, string, string][]
       }
   )
@@ -124,6 +124,7 @@ export type UseFormRegisterOptions = {
   transformSideValue?: (value: any, el?: any) => any
   transformValue?: (value: any, el?: any) => any
   registerSideOnly?: boolean
+  value?: any
 }
 
 export type UseFormRegister = (

@@ -15,25 +15,23 @@ const unset = (object: Record<string, any>, path?: string) => {
     return
   }
 
-  if (length === 2) {
-    const p1 = arrPath[0]
-    const p2 = arrPath[1]
-    if (
-      !object[p1]?.[isProxy] &&
-      isObject(object[p1]) &&
-      Object.keys(object[p1]).length === 1 &&
-      object[p1][p2] !== undefined
-    ) {
-      delete object[p1]
-      return
-    }
-  }
-
   arrPath.reduce((acc, cv, index) => {
     switch (true) {
       case index === length - 1:
         if (acc !== undefined) {
           delete acc[cv]
+        }
+        break
+      case index === length - 2:
+        if (
+          isObject(acc[cv]) &&
+          !acc?.[cv]?.[isProxy] &&
+          (Object.keys(acc[cv]).length === 0 ||
+            (Object.keys(acc[cv]).length === 1 &&
+              Object.keys(acc[cv])[0] === arrPath[index + 1]))
+        ) {
+          delete acc[cv]
+          return
         }
         break
       case isObject(acc[cv]):
@@ -42,7 +40,6 @@ const unset = (object: Record<string, any>, path?: string) => {
         }
         break
     }
-
     return acc?.[cv]
   }, object)
 }

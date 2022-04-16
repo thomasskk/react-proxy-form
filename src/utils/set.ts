@@ -21,7 +21,7 @@ const set = (object: Record<string, any>, path: string, value?: unknown) => {
         acc[cv] = { ...acc[cv] }
         break
       case Array.isArray(acc[cv]):
-        acc[cv] = { ...acc[cv] }
+        acc[cv] = [...acc[cv]]
         break
       case typeof arrPath[index + 1] === 'number':
         acc[cv] = []

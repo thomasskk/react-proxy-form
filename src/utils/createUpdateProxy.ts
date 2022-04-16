@@ -37,9 +37,6 @@ const createUpdateProxy = () =>
 
         return true
       },
-      get: (target, p, receiver) => {
-        return true
-      },
     }
   )
 

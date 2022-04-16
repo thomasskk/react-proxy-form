@@ -1,13 +1,14 @@
-export const isProxy = Symbol('isProxy')
+export const isProxy = Symbol('__PROXY__')
+export const proxyKeys = Symbol('__KEYS__')
 
-const createValueProxy = (v: any, setCb: () => void, key: string | number) =>
+const createValueProxy = (v: any, setCb: () => void, keys: any[]) =>
   new Proxy(v, {
     deleteProperty: (target, p) => {
       Reflect.deleteProperty(target, p)
       return true
     },
     set: (target, p, value, receiver) => {
-      if (p !== key) {
+      if (!keys.includes(p)) {
         Reflect.set(target, p, value, receiver)
         return true
       }
@@ -25,12 +26,15 @@ const createValueProxy = (v: any, setCb: () => void, key: string | number) =>
 
       Reflect.set(target, p, value, receiver)
 
-      p === key && setCb?.()
+      setCb?.()
       return true
     },
     get: (target, p, receiver) => {
       if (p === isProxy) {
         return true
+      }
+      if (p === proxyKeys) {
+        return keys
       }
 
       return Reflect.get(target, p, receiver)

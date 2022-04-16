@@ -1,20 +1,16 @@
 import { ObjectType, ValitaError } from '@badrap/valita'
 import get from './get'
 
-const getFailureMessage = (failure: ValitaError['issues'][0]['code']) => {
-  switch (failure) {
-    case 'custom_error':
-      return 'custom_error'
-    case 'invalid_length':
-      return 'Nombre de caractères invalide'
-    case 'invalid_type':
-      return 'Type invalide'
-    case 'invalid_union':
-      return 'Type invalide'
-    case 'missing_value':
-      return 'Champ requis'
-    case 'unrecognized_keys':
-      return 'Clé(s) inconnue(s)'
+const getFailureMessage = (failure: any) => {
+  const { code, path, error, message } = failure
+
+  switch (true) {
+    case message !== undefined:
+      return message
+    case error !== undefined:
+      return error
+    case code === 'missing_value':
+      return 'Veuillez remplir ce champ'
     default:
       return 'Champ invalide'
   }
@@ -32,15 +28,16 @@ export const resolver = (
   try {
     schema.parse(values)
   } catch (error: unknown) {
+    console.log(values)
+    console.log(error)
     if (error instanceof ValitaError) {
-      console.log(error)
-      console.log(values)
-
       issues = error.issues
     } else {
       console.error(error)
     }
   }
+
+  const matchErrorFieldsName: string[] = []
 
   if (!_name) {
     for (const [field1, field2, message] of _match) {
@@ -48,24 +45,25 @@ export const resolver = (
       const field2Value = get(values, field2)
 
       if (field1Value !== field2Value) {
-        errors[field2] = message
+        matchErrorFieldsName.push(field2)
+        errors[field2] = { code: 'UPDATE', value: message }
       }
     }
   }
 
   if (!issues) {
-    return false
+    return matchErrorFieldsName.length !== 0
   }
 
   for (const issue of issues) {
-    const path = issue.path?.length === 0 ? issue?.keys : issue.path
+    const path = issue.path?.length === 0 ? (issue as any)?.keys : issue.path
 
     const name = path?.reduce(
-      (p, c) => `${p}.${typeof c === 'number' ? `[${c}]` : c}`
+      (p: any, c: any) => `${p}.${typeof c === 'number' ? `[${c}]` : c}`
     )
-    const message = getFailureMessage(issue.code)
+    const message = getFailureMessage(issue)
 
-    if (name !== undefined) {
+    if (name !== undefined && !matchErrorFieldsName.includes(name)) {
       errors[name] = { code: 'UPDATE', value: message }
       if (name === _name) {
         return true

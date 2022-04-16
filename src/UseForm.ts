@@ -1,4 +1,4 @@
-import { useCallback, useReducer, useRef, useState } from 'react'
+import { useReducer, useRef, useState } from 'react'
 import {
   DeepPartial,
   DefaultValue,
@@ -11,7 +11,7 @@ import {
   SetValue,
   UseFormProps,
   UseFormRegister,
-  UseFormReturn
+  UseFormReturn,
 } from './types'
 import createErrorProxy from './utils/createErrorProxy'
 import createUpdateProxy from './utils/createUpdateProxy'
@@ -46,8 +46,9 @@ export function UseForm<T>(
     resetOnSubmit: _resetOnSubmit,
     setAfterSubmit: _setAfterSubmit,
   } = props
-  const forceUpdate = useReducer((c) => c + 1, 0)[1]
+  const [depUpdate, forceDepUpdate] = useState(0)
 
+  const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const [_defaultFormValue, _setdefaultFormValue] = useState<
     DeepPartial<T> | undefined
   >(defaultValue)
@@ -64,6 +65,7 @@ export function UseForm<T>(
       ? { value: { ..._defaultFormValue } }
       : { value: {} }
   )
+
   const formErrors = useRef<any>(createErrorProxy())
 
   const updateStore = useRef<any>(createUpdateProxy())
@@ -82,10 +84,12 @@ export function UseForm<T>(
     formValue.current.value =
       _defaultFormValue !== undefined ? { ..._defaultFormValue } : {}
     isDefaultSet.current = false
+    refEl.current = new Map()
     formErrors.current.err = { code: 'RESET' }
     formSErrors.current.err = { code: 'RESET' }
-    updateStore.current.up = { code: 'UPDATE_ALL' }
+    updateStore.current.up = { code: 'RESET' }
     forceUpdate()
+    forceDepUpdate((v) => v + 1)
   }
 
   const setDefaultValue: SetDefaultValue<T> = (value) => {
@@ -128,16 +132,23 @@ export function UseForm<T>(
     const isSValidation = _sideValidation
     let isError = false
     if (!side && isValidation) {
-      isError = resolver(_validation, getAllValue(), formErrors.current, name)
+      isError = resolver(
+        _validation,
+        getAllValue(),
+        formErrors.current,
+        name,
+        _match
+      )
       if (!isError) {
         formErrors.current[name] = { code: 'REFRESH' }
       }
     } else if (isSValidation) {
       isError = resolver(
-        _sideValidation.validation!,
+        _sideValidation.validation,
         getAllSideValue(),
         formSErrors.current,
-        name
+        name,
+        _sideValidation.matchSide
       )
       if (!isError) {
         formSErrors.current[name] = { code: 'REFRESH' }
@@ -173,7 +184,7 @@ export function UseForm<T>(
       formSErrors.current.err = { code: 'RESET_AND_UPDATE' }
 
       isSErrors = resolver(
-        _sideValidation.validation!,
+        _sideValidation.validation,
         getAllSideValue(),
         formSErrors.current,
         undefined,
@@ -227,7 +238,7 @@ export function UseForm<T>(
         for (const v of entry.el.values()) {
           if (v?.value) {
             if (v.value.checked) {
-              value.push(valueType(v.value))
+              value.push(valueType(v.value.value))
             } else {
               value = value.filter((v) => v !== valueType(v?.value?.value))
             }
@@ -289,14 +300,12 @@ export function UseForm<T>(
         }
       }
     }
-    
+
     if (_setBeforeSubmit) {
       for (const [key, value] of Object.entries(_setBeforeSubmit)) {
         set(formValue.current.value, key, value)
       }
     }
-
-    console.log(getAllValue());
 
     if (!validateAll()) {
       return
@@ -314,8 +323,7 @@ export function UseForm<T>(
     }
   }
 
-  const valueDate = (value: string) =>
-    isStringDate(value) ? new Date(value).toISOString() : undefined
+  const valueDate = (value: string) => new Date(value).toISOString()
 
   const defineType = (_type: any, _valueAs: any) => {
     if (_valueAs instanceof Function) {
@@ -341,7 +349,7 @@ export function UseForm<T>(
     }
   }
 
-  const register: UseFormRegister = useCallback((_name, _options = {}) => {
+  const register: UseFormRegister = (_name, _options = {}) => {
     const {
       type: _type = 'text',
       onChange: _onChange,
@@ -351,25 +359,57 @@ export function UseForm<T>(
       sideValueName: _sideValueName,
       defaultChecked: _defaultChecked,
       registerSideOnly: _registerSideOnly = false,
+      value: _value,
     } = _options
-
-    // eslint-disable-next-line @typescript-eslint/ban-types
     const valueType = defineType(_type, _valueAs)
     const sideValueType = defineType(_type, _sideValueAs)
 
     let defaultValue: DefaultValue
+    let defaultChecked = _defaultChecked
 
-    if (
+    if (!_autoUnregister) {
+      const v = getValue(_name as any)
+      if (v !== undefined) {
+        if (_type == 'radio' && _valueAs == 'boolean') {
+          defaultChecked = !!_value == !!v
+        } else if (_type === 'date' || _type === 'datetime-local') {
+          const sliceEnd = _type === 'date' ? 10 : -1
+          defaultValue = new Date(v).toISOString().slice(0, sliceEnd)
+        } else if (_type != 'checkbox' && _type != 'radio') {
+          defaultValue = v
+        }
+      }
+    } else if (
       (_type === 'date' || _type === 'datetime-local') &&
       isStringDate(_defaultValue)
     ) {
       const sliceEnd = _type === 'date' ? 10 : -1
       defaultValue = new Date(_defaultValue).toISOString().slice(0, sliceEnd)
     } else {
-      defaultValue = get(_defaultFormValue, _name)
+      if (_defaultValue !== undefined) {
+        defaultValue = _defaultValue
+      } else if (_type != 'radio') {
+        defaultValue = get(_defaultFormValue, _name)
+      }
+    }
+
+    const props: any = {
+      type: _type,
+      name: _name,
+    }
+
+    if (_value !== undefined) {
+      props.value = _value
+    }
+    if (defaultChecked !== undefined) {
+      props.defaultChecked = defaultChecked
+    }
+    if (defaultValue !== undefined) {
+      props.defaultValue = defaultValue
     }
 
     return {
+      ...props,
       onChange: (event: eventEl) => {
         if (!_registerSideOnly) {
           setFormValue(refEl.current.get(_name), _name, formValue.current.value)
@@ -382,21 +422,19 @@ export function UseForm<T>(
           true
         )
 
-        if (
-          (_validation && formErrors.current?.[_name] !== undefined) ||
-          (_sideValueName &&
-            _sideValidation &&
-            formSErrors.current?.[_sideValueName] !== undefined)
-        ) {
-          validate(_name, _sideValueName !== undefined)
+        if (_validation && formErrors.current?.[_name] !== undefined) {
+          validate(_name, false)
         }
 
+        if (
+          _sideValueName &&
+          _sideValidation &&
+          formSErrors.current?.[_sideValueName] !== undefined
+        ) {
+          validate(_sideValueName, true)
+        }
         _onChange?.(event)
       },
-      defaultChecked: _defaultChecked,
-      type: _type,
-      name: _name,
-      defaultValue: defaultValue as string | number | undefined,
       ref: (el: El) => {
         if (_type === 'checkbox' || _type === 'radio') {
           const element = el as HTMLInputElement
@@ -449,7 +487,7 @@ export function UseForm<T>(
             defaultValue,
             valueType,
             sideValueType,
-            type: _type!,
+            type: _type,
             sideValueName: _sideValueName,
             registerSideOnly: _registerSideOnly,
           })
@@ -466,7 +504,7 @@ export function UseForm<T>(
         }
       },
     }
-  }, [])
+  }
 
   return {
     register,
