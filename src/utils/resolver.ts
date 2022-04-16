@@ -1,4 +1,4 @@
-import { ObjectType, ValitaError } from '@badrap/valita'
+import { ArrayType, ObjectType, ValitaError } from '@badrap/valita'
 import get from './get'
 
 const getFailureMessage = (failure: any) => {
@@ -17,42 +17,23 @@ const getFailureMessage = (failure: any) => {
 }
 
 export const resolver = (
-  schema: ObjectType,
+  schema: ObjectType | ArrayType,
   values: Record<string, any>,
   errors: any,
-  _name?: string,
-  _match: [string, string, string][] = []
+  _name?: string
 ) => {
   let issues: ValitaError['issues'] | undefined
 
   try {
     schema.parse(values)
   } catch (error: unknown) {
-    console.log(values)
-    console.log(error)
     if (error instanceof ValitaError) {
       issues = error.issues
-    } else {
-      console.error(error)
-    }
-  }
-
-  const matchErrorFieldsName: string[] = []
-
-  if (!_name) {
-    for (const [field1, field2, message] of _match) {
-      const field1Value = get(values, field1)
-      const field2Value = get(values, field2)
-
-      if (field1Value !== field2Value) {
-        matchErrorFieldsName.push(field2)
-        errors[field2] = { code: 'UPDATE', value: message }
-      }
     }
   }
 
   if (!issues) {
-    return matchErrorFieldsName.length !== 0
+    return false
   }
 
   for (const issue of issues) {
@@ -63,7 +44,7 @@ export const resolver = (
     )
     const message = getFailureMessage(issue)
 
-    if (name !== undefined && !matchErrorFieldsName.includes(name)) {
+    if (name !== undefined) {
       errors[name] = { code: 'UPDATE', value: message }
       if (name === _name) {
         return true

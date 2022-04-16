@@ -23,15 +23,15 @@ const unset = (object: Record<string, any>, path?: string) => {
         }
         break
       case index === length - 2:
-        if (
-          isObject(acc[cv]) &&
-          !acc?.[cv]?.[isProxy] &&
-          (Object.keys(acc[cv]).length === 0 ||
-            (Object.keys(acc[cv]).length === 1 &&
-              Object.keys(acc[cv])[0] === arrPath[index + 1]))
-        ) {
-          delete acc[cv]
-          return
+        if (isObject(acc[cv]) && !acc?.[cv]?.[isProxy]) {
+          const objKeys = Object.keys(acc[cv])
+          if (
+            objKeys.length === 0 ||
+            (objKeys.length === 1 && objKeys[0] === arrPath[index + 1])
+          ) {
+            delete acc[cv]
+            return
+          }
         }
         break
       case isObject(acc[cv]):

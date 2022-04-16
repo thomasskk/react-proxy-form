@@ -30,7 +30,7 @@ import watch from './utils/watch'
  * match[2] is the error message value.
  * if match[0] and match[1] are not equal the error message will only be displayed on match[1]
  */
-export function UseForm<T>(
+export function useForm<T>(
   props: UseFormProps<T> = {
     autoUnregister: false,
     resetOnSubmit: true,
