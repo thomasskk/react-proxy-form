@@ -1,3 +1,3 @@
 export * from './types'
-export * from './UseForm'
+export * from './useForm'
 export * from './useFormContext'

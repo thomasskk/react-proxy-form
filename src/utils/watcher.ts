@@ -4,7 +4,11 @@ import dotPathReader from './dotPathReader'
 import get from './get'
 import { isObject } from './isHelper'
 
-const watch = (object: Record<string, any>, path: string, updateStore: any) => {
+export default function watcher(
+  object: Record<string, any>,
+  path: string,
+  updateStore: any
+) {
   const [depUpdate, forceDepUpdate] = useState(0)
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const value = useRef()
@@ -57,5 +61,3 @@ const watch = (object: Record<string, any>, path: string, updateStore: any) => {
 
   return get(object.value, path)
 }
-
-export default watch

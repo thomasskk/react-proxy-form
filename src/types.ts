@@ -1,31 +1,48 @@
-import { ObjectType, Type } from '@badrap/valita'
+import { ObjectType } from '@badrap/valita'
 import { ChangeEvent } from 'react'
 
-export type Join<T extends unknown[], D extends string> = T extends []
-  ? ''
-  : T extends [string]
+export type Join<T extends unknown[]> = T extends [string]
   ? `${T[0]}`
-  : T extends [number]
+  : T extends [number] | []
   ? `[${T[0]}]`
   : T extends [string, ...infer R]
-  ? `${T[0]}${D}${Join<R, D>}`
+  ? `${T[0]}${'.'}${Join<R>}` | T[0]
   : T extends [number, ...infer R]
-  ? `[${T[0]}]${D}${Join<R, D>}`
+  ? `[${T[0]}]${'.'}${Join<R>}` | `[${T[0]}]`
   : string
 
-export type NestedPaths<Type> = Type extends string | number | boolean | Date
+export type NestedPaths<T> = T extends undefined
+  ? any
+  : T extends string | number | boolean | Date
   ? []
-  : Type extends Array<infer ArrayType>
-  ? [number, ...NestedPaths<ArrayType>]
-  : Type extends ReadonlyArray<infer ArrayType>
-  ? [number, ...NestedPaths<ArrayType>]
-  : Type extends object
+  : T extends Array<infer ArrayT>
+  ? [number, ...NestedPaths<ArrayT>]
+  : T extends ReadonlyArray<infer ArrayT>
+  ? [number, ...NestedPaths<ArrayT>]
+  : T extends object
   ? {
-      [Key in Extract<keyof Type, string>]: [Key, ...NestedPaths<Type[Key]>]
-    }[Extract<keyof Type, string>]
+      [Key in Extract<keyof T, string>]: [Key, ...NestedPaths<T[Key]>]
+    }[Extract<keyof T, string>]
   : []
 
-export type Path<T> = Join<NestedPaths<T>, '.'>
+export type Path<T> = Join<NestedPaths<T>>
+
+export type PropertyType<
+  Type,
+  Property extends string
+> = Property extends keyof Type
+  ? Type[Property]
+  : Property extends `${infer Key}.${infer Rest}`
+  ? Key extends `[${infer Prefix}]`
+    ? // @ts-expect-error is a number
+      PropertyType<Type[Prefix], Rest>
+    : Key extends keyof Type
+    ? PropertyType<Type[Key], Rest>
+    : unknown
+  : Property extends `[${infer Prefix}]`
+  ? // @ts-expect-error is a number
+    Type[Prefix]
+  : unknown
 
 export type El =
   | HTMLInputElement
@@ -39,69 +56,57 @@ export type eventEl =
   | ChangeEvent<HTMLSelectElement>
   | ChangeEvent<null>
 
-type useFormBaseProps<T> = {
+type useFormBaseProps<T = unknown, S = unknown> = {
   defaultValue?: DeepPartial<T>
   sideValidation?: {
-    defaultValue?: any
-  } & (
-    | {
-        validation?: never
-        matchSide?: never
-      }
-    | {
-        validation: any
-        matchSide?: [string, string, string][]
-      }
-  )
-  setAfterSubmit?: Record<string, any>
+    defaultValue?: DeepPartial<S>
+    validation: any
+  }
+  setAfterSubmit?: Record<string, unknown>
   autoUnregister?: boolean
   resetOnSubmit?: boolean
-  setBeforeSubmit?: Record<string, any>
+  setBeforeSubmit?: Record<string, unknown>
 }
 
-export type UseFormProps<T> = useFormBaseProps<T> &
-  (
-    | {
-        validation?: never
-        match?: never
-      }
-    | {
-        validation: ObjectType
-        match?: [string, string, string][]
-      }
-  )
-export type SetValue<T> = (name: Path<T>, value: any) => void
-export type GetValue<T> = (path: Path<T>) => any
+export type UseFormProps<T, S> = useFormBaseProps<T, S> & {
+  validation?: ObjectType
+}
+
+export type SetValue<T> = <P extends Path<T>>(
+  path: P,
+  value: PropertyType<T, P>
+) => void
+export type GetValue<T> = <P extends Path<T>>(path: P) => PropertyType<T, P>
 export type SetDefaultValue<T> = (value: DeepPartial<T>) => void
 export type Errors<T> = (path: Path<T>) => any
 
-export type UseFormReturn<T> = {
-  register: UseFormRegister
+export type UseFormReturn<T, S> = {
+  register: UseFormRegister<T>
   reset: () => void
   errors: Errors<T>
   sideErrors: Errors<T>
   handleSubmit: HandleSubmit<T>
   getValue: GetValue<T>
   setValue: SetValue<T>
-  setSideValue: SetValue<T>
-  getSideValue: GetValue<T>
+  setSideValue: SetValue<S>
+  getSideValue: GetValue<S>
   getAllValue: () => T
-  getAllSideValue: () => any
+  getAllSideValue: () => S
   setDefaultValue: SetDefaultValue<T>
-  watchSideValue: (path: Path<T>) => any
-  watchValue: (path: Path<T>) => any
+  watch: <P extends Path<T>>(
+    path: P,
+    opts?: { side: boolean }
+  ) => PropertyType<T, P>
 }
 
 export type DefaultValue = string | number | Date | null | undefined
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type ValueAs =
   | 'string'
   | 'number'
   | 'boolean'
   | 'date'
   | undefined
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  | Function
+  | (() => void)
 export type InputType =
   | 'checkbox'
   | 'radio'
@@ -127,8 +132,8 @@ export type UseFormRegisterOptions = {
   value?: any
 }
 
-export type UseFormRegister = (
-  _name: string,
+export type UseFormRegister<T> = (
+  _name: Path<T>,
   _options?: UseFormRegisterOptions
 ) => UseFormRegisterReturn
 

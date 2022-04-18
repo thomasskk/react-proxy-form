@@ -21,15 +21,8 @@ import { isStringDate } from './utils/isHelper'
 import { resolver } from './utils/resolver'
 import set from './utils/set'
 import unset from './utils/unset'
-import watch from './utils/watch'
+import watcher from './utils/watcher'
 
-/**
- * @param _match
- * @description _match : [string,string,string]
- * match[0] and match[1] are the fields to compare
- * match[2] is the error message value.
- * if match[0] and match[1] are not equal the error message will only be displayed on match[1]
- */
 export function useForm<T>(
   props: UseFormProps<T> = {
     autoUnregister: false,
@@ -39,7 +32,6 @@ export function useForm<T>(
   const {
     defaultValue,
     validation: _validation,
-    match: _match,
     sideValidation: _sideValidation,
     setBeforeSubmit: _setBeforeSubmit,
     autoUnregister: _autoUnregister,
@@ -132,13 +124,7 @@ export function useForm<T>(
     const isSValidation = _sideValidation
     let isError = false
     if (!side && isValidation) {
-      isError = resolver(
-        _validation,
-        getAllValue(),
-        formErrors.current,
-        name,
-        _match
-      )
+      isError = resolver(_validation, getAllValue(), formErrors.current, name)
       if (!isError) {
         formErrors.current[name] = { code: 'REFRESH' }
       }
@@ -147,8 +133,7 @@ export function useForm<T>(
         _sideValidation.validation,
         getAllSideValue(),
         formSErrors.current,
-        name,
-        _sideValidation.matchSide
+        name
       )
       if (!isError) {
         formSErrors.current[name] = { code: 'REFRESH' }
@@ -169,8 +154,7 @@ export function useForm<T>(
         _validation,
         getAllValue(),
         formErrors.current,
-        undefined,
-        _match
+        undefined
       )
       if (!isErrors && prevErrors.current) {
         formErrors.current.err = { code: 'RESET_AND_UPDATE' }
@@ -187,8 +171,7 @@ export function useForm<T>(
         _sideValidation.validation,
         getAllSideValue(),
         formSErrors.current,
-        undefined,
-        _sideValidation.matchSide
+        undefined
       )
 
       if (!isSErrors && prevSErrors.current) {
@@ -200,10 +183,12 @@ export function useForm<T>(
     return !isSErrors && !isErrors
   }
 
-  const watchValue = (path: string) =>
-    watch(formValue.current, path, updateStore.current)
-  const watchSideValue = (path: string) =>
-    watch(formSValue.current, path, updateStore.current)
+  const watch = (path: string, opts = { side: false }) =>
+    watcher(
+      opts.side ? formSValue.current : formValue.current,
+      path,
+      updateStore.current
+    )
 
   const errors = (path: string) => error(formErrors.current, path)
   const sideErrors = (path: string) => error(formSErrors.current, path)
@@ -349,7 +334,7 @@ export function useForm<T>(
     }
   }
 
-  const register: UseFormRegister = (_name, _options = {}) => {
+  const register: UseFormRegister<T> = (_name, _options = {}) => {
     const {
       type: _type = 'text',
       onChange: _onChange,
@@ -509,8 +494,7 @@ export function useForm<T>(
   return {
     register,
     reset,
-    watchSideValue,
-    watchValue,
+    watch,
     errors,
     sideErrors,
     handleSubmit,
