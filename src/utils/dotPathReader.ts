@@ -1,5 +1,4 @@
-
-const dotPathReader = (path: string) => {
+export const dotPathReader = (path: string) => {
   const arrPath: (string | number)[] = path.split('.')
 
   for (const [i, v] of (arrPath as string[]).entries()) {
@@ -10,5 +9,3 @@ const dotPathReader = (path: string) => {
 
   return arrPath
 }
-
-export default dotPathReader

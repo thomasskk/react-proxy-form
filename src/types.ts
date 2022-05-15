@@ -44,6 +44,15 @@ export type PropertyType<
     Type[Prefix]
   : unknown
 
+export type Primitive = boolean | string | number | symbol | null | bigint
+
+export type Obj = Record<string | number | symbol, Primitive>
+export type ArrayType = (ObjType | Primitive)[]
+export type ObjType = Record<
+  string | number | symbol,
+  Obj | Primitive | ArrayType
+>
+
 export type El =
   | HTMLInputElement
   | HTMLTextAreaElement
@@ -68,7 +77,7 @@ type useFormBaseProps<T = unknown, S = unknown> = {
   setBeforeSubmit?: Record<string, unknown>
 }
 
-export type UseFormProps<T, S> = useFormBaseProps<T, S> & {
+export type UseFormProps<T, S = unknown> = useFormBaseProps<T, S> & {
   validation?: ObjectType
 }
 
@@ -80,7 +89,7 @@ export type GetValue<T> = <P extends Path<T>>(path: P) => PropertyType<T, P>
 export type SetDefaultValue<T> = (value: DeepPartial<T>) => void
 export type Errors<T> = (path: Path<T>) => any
 
-export type UseFormReturn<T, S> = {
+export type UseFormReturn<T, S = unknown> = {
   register: UseFormRegister<T>
   reset: () => void
   errors: Errors<T>

@@ -1,5 +1,4 @@
 import { ArrayType, ObjectType, ValitaError } from '@badrap/valita'
-import get from './get'
 
 const getFailureMessage = (failure: any) => {
   const { code, path, error, message } = failure

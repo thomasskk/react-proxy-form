@@ -1,5 +1,5 @@
 import { test, describe, expect } from 'vitest'
-import get from '../../src/utils/get'
+import { get } from '../../src/utils/get'
 
 describe('set', () => {
   test('get the correct value', () => {

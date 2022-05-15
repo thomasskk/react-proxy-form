@@ -1,5 +1,5 @@
 import { isProxy } from './createValueProxy'
-import dotPathReader from './dotPathReader'
+import { dotPathReader } from './dotPathReader'
 import { isObject } from './isHelper'
 
 const set = (object: Record<string, any>, path: string, value?: unknown) => {

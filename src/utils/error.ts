@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { ErrorProxyCode } from './createErrorProxy'
 
-const error = (prox: Record<string, any>, name: string) => {
+export const error = (prox: Record<string, any>, name: string) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   useEffect(() => {
     prox[name] = { code: 'INIT', update: forceUpdate } as ErrorProxyCode
@@ -11,5 +11,3 @@ const error = (prox: Record<string, any>, name: string) => {
   }, [])
   return prox[name]
 }
-
-export default error

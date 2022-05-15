@@ -183,15 +183,20 @@ export function useForm<T>(
     return !isSErrors && !isErrors
   }
 
-  const watch = (path: string, opts = { side: false }) =>
-    watcher(
+  const watch = (path: string, opts = { side: false }) => {
+    return watcher(
       opts.side ? formSValue.current : formValue.current,
       path,
       updateStore.current
     )
+  }
 
-  const errors = (path: string) => error(formErrors.current, path)
-  const sideErrors = (path: string) => error(formSErrors.current, path)
+  const errors = (path: string) => {
+    return error(formErrors.current, path)
+  }
+  const sideErrors = (path: string) => {
+    return error(formSErrors.current, path)
+  }
 
   const setFormValue = (
     entry?: RefElValue,
