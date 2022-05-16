@@ -22,13 +22,13 @@ export const watcher = (
 
     arrPath.reduce((acc, cv, index) => {
       if (index == arrPath.length - 1) {
-        // check if the value is already a value proxy
+        // check if the value is already a proxy
         const keys = object.value?.[proxyKeys]
         // if so push the selected key to the keys array
         if (keys) {
           keys.push(key.current)
         }
-        // and then recreate the value proxy with the refreshed keys array
+        // and then recreate the proxy with the refreshed keys
         acc[cv] = createValueProxy(
           isObject(acc) ? { ...acc } : acc,
           forceUpdate,

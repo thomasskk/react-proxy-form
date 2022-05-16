@@ -1,33 +1,24 @@
 import { isProxy } from './createValueProxy'
-import dotPathReader from './dotPathReader'
+import { dotPathReader } from './dotPathReader'
 import { isObject, isObjWritable } from './isHelper'
 
-const unset = (object: Record<string, any>, path?: string) => {
-  if (path === undefined || object === undefined) {
-    return
-  }
-
+export const unset = (object: Record<string, any>, path: string) => {
   const arrPath = dotPathReader(path)
-  const length = arrPath.length
-
-  if (length === 1) {
-    delete object[path]
-    return
-  }
+  const { length } = arrPath
 
   arrPath.reduce((acc, cv, index) => {
     switch (true) {
-      case index === length - 1:
+      case index == length - 1:
         if (acc !== undefined) {
           delete acc[cv]
         }
         break
-      case index === length - 2:
-        if (isObject(acc[cv]) && !acc?.[cv]?.[isProxy]) {
+      case index == length - 2:
+        if (isObject(acc[cv]) && !acc[cv][isProxy]) {
           const objKeys = Object.keys(acc[cv])
           if (
-            objKeys.length === 0 ||
-            (objKeys.length === 1 && objKeys[0] === arrPath[index + 1])
+            objKeys.length == 0 ||
+            (objKeys.length == 1 && objKeys[0] == arrPath[index + 1])
           ) {
             delete acc[cv]
             return
@@ -35,7 +26,7 @@ const unset = (object: Record<string, any>, path?: string) => {
         }
         break
       case isObject(acc[cv]):
-        if (!isObjWritable(acc, cv) && !acc[cv]?.[isProxy]) {
+        if (!isObjWritable(acc, cv) && !acc[cv][isProxy]) {
           acc[cv] = { ...acc[cv] }
         }
         break
@@ -43,5 +34,3 @@ const unset = (object: Record<string, any>, path?: string) => {
     return acc?.[cv]
   }, object)
 }
-
-export default unset
