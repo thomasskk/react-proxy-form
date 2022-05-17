@@ -44,14 +44,23 @@ export type PropertyType<
     Type[Prefix]
   : unknown
 
-export type Primitive = boolean | string | number | symbol | null | bigint
+export type Primitive =
+  | boolean
+  | string
+  | number
+  | symbol
+  | null
+  | bigint
+  | undefined
 
 export type Obj = Record<string | number | symbol, Primitive>
 export type ArrayType = (ObjType | Primitive)[]
-export type ObjType = Record<
+
+type BaseObjType<T> = Record<
   string | number | symbol,
-  Obj | Primitive | ArrayType
+  T | Obj | Primitive | ArrayType
 >
+export interface ObjType extends BaseObjType<ObjType> {}
 
 export type El =
   | HTMLInputElement

@@ -8,23 +8,21 @@ import userEvent from '@testing-library/user-event'
 
 describe('useForm', () => {
   describe('watch', () => {
-    test('update the value on change', async () => {
-      let watched: number | undefined
-      const Component = () => {
-        const { watch, register } = useForm<{
-          a: { b: 1 }
-          b: [1, { c: [2] }]
-        }>()
-        watched = watch('a.b')
-        return <input {...register('a')} />
-      }
-      render(<Component />)
-      await userEvent.type(screen.getByRole('textbox'), 'a')
-      expect(watched).toEqual('a')
-      await userEvent.type(screen.getByRole('textbox'), 'b')
-      expect(watched).toEqual('ab')
-    })
-
-    test('return undefined when name', async () => {})
+    //    test('update the value on change', async () => {
+    //      let watched: number | undefined
+    //      const Component = () => {
+    //        const { watch, register } = useForm<{
+    //          a: { b: 1 }
+    //          b: [1, { c: [2] }]
+    //        }>()
+    //        watched = watch('a.b')
+    //        return <input {...register('a')} />
+    //      }
+    //      render(<Component />)
+    //      await userEvent.type(screen.getByRole('textbox'), 'a')
+    //      expect(watched).toEqual('a')
+    //      await userEvent.type(screen.getByRole('textbox'), 'b')
+    //      expect(watched).toEqual('ab')
+    //    })
   })
 })

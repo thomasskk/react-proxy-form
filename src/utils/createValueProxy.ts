@@ -3,38 +3,46 @@ import { ObjType, ArrayType } from '../types'
 export const isProxy = Symbol('__PROXY__')
 export const proxyKeys = Symbol('__KEYS__')
 
-export const createValueProxy = (
-  v: ObjType | ArrayType,
-  cb: () => void,
-  keys: (string | symbol | number)[]
-) => {
-  return new Proxy(v, {
-    deleteProperty: (target, p) => {
-      Reflect.deleteProperty(target, p)
-      return true
-    },
-    set: (target, p, value, receiver) => {
-      if (Array.isArray(v)) {
-      }
-      if (!keys.includes(p)) {
-        Reflect.set(target, p, value, receiver)
-        return true
+// trigger cb on set when property is in keys and its value is changed
+export const createValueProxy = <
+  T extends ObjType | ArrayType,
+  K extends (string | symbol)[]
+>(args: {
+  value: T
+  cb: () => void
+  keys: K
+}) => {
+  const { value: proxyValue, cb, keys } = args
+  return new Proxy(proxyValue, {
+    set: (target, property, value, receiver) => {
+      // if key is not in keys => normal behavior
+      if (!keys.includes(property)) {
+        return Reflect.set(target, property, value, receiver)
       }
 
-      const prevValue = Reflect.get(target, p, receiver)
-
+      // if the previous value is undefined and the new one too => delete
+      const prevValue = Reflect.get(target, property, receiver)
       if (value === undefined && prevValue === undefined) {
-        Reflect.deleteProperty(target, p)
+        if (Array.isArray(target)) {
+          target.splice(Number(property), 1)
+        } else {
+          Reflect.deleteProperty(target, property)
+        }
         return true
       }
 
+      // !!
+      // edge case ?
+      // !!
       if (Object.is(prevValue, value)) {
         return true
       }
 
-      Reflect.set(target, p, value, receiver)
-
-      cb?.()
+      // !!
+      // cb before set ?
+      // !!
+      Reflect.set(target, property, value, receiver)
+      cb()
       return true
     },
     get: (target, p, receiver) => {

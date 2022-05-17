@@ -15,13 +15,13 @@ import {
 } from './types'
 import createErrorProxy from './utils/createErrorProxy'
 import createUpdateProxy from './utils/createUpdateProxy'
-import error from './utils/error'
-import get from './utils/get'
+import { error } from './utils/error'
+import { get } from './utils/get'
 import { isStringDate } from './utils/isHelper'
 import { resolver } from './utils/resolver'
 import set from './utils/set'
-import unset from './utils/unset'
-import watcher from './utils/watcher'
+import { unset } from './utils/unset'
+import { watcher } from './utils/watcher'
 
 export function useForm<T>(
   props: UseFormProps<T> = {
@@ -184,11 +184,11 @@ export function useForm<T>(
   }
 
   const watch = (path: string, opts = { side: false }) => {
-    return watcher(
-      opts.side ? formSValue.current : formValue.current,
+    return watcher({
       path,
-      updateStore.current
-    )
+      object: opts.side ? formSValue.current.value : formValue.current.value,
+      updateStore: updateStore.current,
+    })
   }
 
   const errors = (path: string) => {
