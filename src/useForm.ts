@@ -14,7 +14,7 @@ import {
   UseFormReturn,
 } from './types'
 import createErrorProxy from './utils/createErrorProxy'
-import createUpdateProxy from './utils/createUpdateProxy'
+import { createUpdateProxy } from './utils/createUpdateProxy'
 import { error } from './utils/error'
 import { get } from './utils/get'
 import { isStringDate } from './utils/isHelper'
@@ -39,6 +39,7 @@ export function useForm<T>(
     setAfterSubmit: _setAfterSubmit,
   } = props
   const [depUpdate, forceDepUpdate] = useState(0)
+  const watchStore = useRef(new Set<string>())
 
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const [_defaultFormValue, _setdefaultFormValue] = useState<
@@ -188,6 +189,7 @@ export function useForm<T>(
       path,
       object: opts.side ? formSValue.current.value : formValue.current.value,
       updateStore: updateStore.current,
+      watchStore: watchStore.current,
     })
   }
 

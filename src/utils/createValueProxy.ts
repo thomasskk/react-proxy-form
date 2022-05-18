@@ -16,6 +16,7 @@ export const createValueProxy = <
   return new Proxy(proxyValue, {
     set: (target, property, value, receiver) => {
       // if key is not in keys => normal behavior
+
       if (!keys.includes(property)) {
         return Reflect.set(target, property, value, receiver)
       }

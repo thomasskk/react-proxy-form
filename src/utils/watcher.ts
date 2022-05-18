@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
 import { ArrayType, ObjType } from '../types'
+import { UpdateProxyCode } from './createUpdateProxy'
 import { createValueProxy, proxyKeys } from './createValueProxy'
 import { dotPathReader } from './dotPathReader'
 import { isObject } from './isHelper'
@@ -8,8 +9,9 @@ export const watcher = (args: {
   object: ArrayType | ObjType
   path: string
   updateStore: any
+  watchStore: Set<string>
 }) => {
-  const { object, path, updateStore } = args
+  const { object, path, updateStore, watchStore } = args
 
   const [depUpdate, forceDepUpdate] = useState(0)
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
@@ -28,19 +30,16 @@ export const watcher = (args: {
         return
       }
       if (index == arrPath.length - 1) {
-        // check if the value is already a proxy
-        const keys = object[proxyKeys as any] as any[]
-        // if so push the selected key to the keys array
-        if (keys) {
-          keys.push(key.current)
-        }
-        // and then recreate the proxy with the refreshed keys
-        acc[cv] = createValueProxy({
+        // keys array to determine which property is watched
+        const keys = (object[proxyKeys as any] as any[]) || []
+        keys.push(key.current)
+
+        acc = createValueProxy({
           keys,
           value: isObject(acc) ? { ...acc } : acc,
           cb: forceUpdate,
         })
-        value.current = acc[cv]
+        value.current = acc
       }
       return acc[cv]
     }, object)
@@ -48,14 +47,17 @@ export const watcher = (args: {
     updateStore[path] = {
       code: 'SET',
       update: () => forceDepUpdate((v) => v + 1),
-    }
+    } as UpdateProxyCode
 
     forceUpdate()
 
     return () => {
-      updateStore[path] = { code: 'DELETE' }
+      updateStore[path] = { code: 'DELETE' } as UpdateProxyCode
+      watchStore.delete(path)
     }
   }, [depUpdate])
 
-  return key.current ? object[key.current as any] : undefined
+  return key.current !== undefined
+    ? value.current?.[key.current as any]
+    : undefined
 }

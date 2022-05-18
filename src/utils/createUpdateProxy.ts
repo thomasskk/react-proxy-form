@@ -1,43 +1,39 @@
-export type ErrorProxyCode =
+export type UpdateProxyCode =
   | { code: 'SET'; update: () => void }
   | { code: 'DELETE' }
   | { code: 'UPDATE_ALL' }
   | { code: 'RESET' }
 
-type Store = { store: Map<string, () => void> }
-
-const createUpdateProxy = () =>
-  new Proxy<Store>(
+export const createUpdateProxy = () =>
+  new Proxy(
     {
-      store: new Map<string, () => void>(),
+      store: new Map<string | symbol, () => void>(),
     },
     {
-      set: (t, p: string, v: ErrorProxyCode, r) => {
-        if (v.code === 'SET') {
-          t.store.set(p, v.update)
-          Reflect.set(t, 'store', t.store, r)
+      set: (target, property, value: UpdateProxyCode, receiver) => {
+        if (value.code == 'SET') {
+          target.store.set(property, value.update)
+          Reflect.set(target, 'store', target.store, receiver)
           return true
         }
-        if (v.code === 'DELETE') {
-          if (p !== undefined) {
-            t.store.delete(p)
+        if (value.code == 'DELETE') {
+          if (property !== undefined) {
+            target.store.delete(property)
           }
           return true
         }
-        if (v.code === 'UPDATE_ALL') {
-          for (const [, v] of t.store) {
+        if (value.code == 'UPDATE_ALL') {
+          for (const [, v] of target.store) {
             v()
           }
           return true
         }
-        if (v.code === 'RESET') {
-          Reflect.set(t, 'store', new Map(), r)
+        if (value.code == 'RESET') {
+          Reflect.set(target, 'store', new Map(), receiver)
           return true
         }
 
         return true
       },
     }
-  )
-
-export default createUpdateProxy
+  ) as any

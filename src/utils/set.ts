@@ -2,13 +2,18 @@ import { isProxy } from './createValueProxy'
 import { dotPathReader } from './dotPathReader'
 import { isObject } from './isHelper'
 
-const set = (object: Record<string, any>, path: string, value?: unknown) => {
+const set = (
+  object: Record<string, any>,
+  path: string,
+  value?: unknown,
+  offset: number = 1
+) => {
   const arrPath = dotPathReader(path)
   const length = arrPath.length
 
   arrPath.reduce((acc, cv, index) => {
     switch (true) {
-      case index === length - 1:
+      case index == length - offset:
         if (value !== undefined) {
           acc[cv] = value
         } else {
@@ -23,7 +28,7 @@ const set = (object: Record<string, any>, path: string, value?: unknown) => {
       case Array.isArray(acc[cv]):
         acc[cv] = [...acc[cv]]
         break
-      case typeof arrPath[index + 1] === 'number':
+      case typeof arrPath[index + 1] == 'number':
         acc[cv] = []
         break
       default:

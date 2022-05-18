@@ -9,7 +9,7 @@ describe('createValueProxy', () => {
   describe('Object value', () => {
     test('get proxy', () => {
       const proxy = createValueProxy({
-        value: { a: 1 },
+        value: { a: 1 } as any,
         cb: () => {},
         keys: ['b'],
       })
