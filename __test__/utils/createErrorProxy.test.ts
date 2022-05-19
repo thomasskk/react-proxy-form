@@ -1,22 +1,25 @@
 import { test, describe, expect, vi } from 'vitest'
-import { createUpdateProxy } from '../../src/utils/createUpdateProxy'
+import {
+  createErrorProxy,
+  ErrorProxyCode,
+} from '../../src/utils/createErrorProxy'
 
-describe('createUpdateProxy', () => {
-  test('SET', () => {
-    const proxy = createUpdateProxy()
+describe('createErrorProxy', () => {
+  test('INIT', () => {
+    const proxy = createErrorProxy()
     const cb = vi.fn()
-    proxy['foo'] = { code: 'SET', update: cb }
-    expect(proxy.store.get('foo')).toEqual(cb)
+    proxy['foo'] = { code: 'INIT', cb } as ErrorProxyCode
+    expect(proxy.initStore.get('foo')).toEqual(cb)
   })
-  test('DELETE', () => {
-    const proxy = createUpdateProxy()
+  test('UPDATE', () => {
+    const proxy = createErrorProxy()
     const cb = vi.fn()
-    proxy['foo'] = { code: 'SET', update: cb }
+    proxy['foo'] = { code: 'UPDATE', value: 'bar' } as ErrorProxyCode
     proxy['foo'] = { code: 'DELETE' }
     expect(proxy.store.get('foo')).toBeUndefined()
   })
-  test('UPDATE_ALL', () => {
-    const proxy = createUpdateProxy()
+  test('REFRESH', () => {
+    const proxy = createErrorProxy()
     const cb = vi.fn()
     proxy['foo'] = { code: 'SET', update: cb }
     proxy['bar'] = { code: 'SET', update: cb }
@@ -24,7 +27,23 @@ describe('createUpdateProxy', () => {
     expect(cb).toHaveBeenCalledTimes(2)
   })
   test('RESET', () => {
-    const proxy = createUpdateProxy()
+    const proxy = createErrorProxy()
+    const cb = vi.fn()
+    proxy['foo'] = { code: 'SET', update: cb }
+    proxy['bar'] = { code: 'SET', update: cb }
+    proxy[''] = { code: 'RESET' }
+    expect(proxy.store.size).toEqual(0)
+  })
+  test('DELETE', () => {
+    const proxy = createErrorProxy()
+    const cb = vi.fn()
+    proxy['foo'] = { code: 'SET', update: cb }
+    proxy['bar'] = { code: 'SET', update: cb }
+    proxy[''] = { code: 'RESET' }
+    expect(proxy.store.size).toEqual(0)
+  })
+  test('RESET_AND_UPDATE', () => {
+    const proxy = createErrorProxy()
     const cb = vi.fn()
     proxy['foo'] = { code: 'SET', update: cb }
     proxy['bar'] = { code: 'SET', update: cb }

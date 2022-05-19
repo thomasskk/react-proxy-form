@@ -1,68 +1,61 @@
 export type ErrorProxyCode =
-  | { code: 'INIT'; update: () => void }
+  | { code: 'INIT'; cb: () => void }
   | { code: 'UPDATE'; value: string }
   | { code: 'RESET_AND_UPDATE' }
   | { code: 'REFRESH' }
   | { code: 'RESET' }
   | { code: 'DELETE' }
 
-type Store = {
-  initStore: Map<string, () => void>
-  mssgStore: Map<string, string>
-}
-
-const createErrorProxy = () =>
-  new Proxy<Partial<ErrorProxyCode> & Store>(
+export const createErrorProxy = () => {
+  return new Proxy(
     {
-      initStore: new Map<string, () => void>(),
-      mssgStore: new Map<string, string>(),
+      initStore: new Map<string | symbol, () => void>(),
+      mssgStore: new Map<string | symbol, string>(),
     },
     {
-      set: (t, p: string, v: ErrorProxyCode, r) => {
-        if (v.code === 'INIT') {
-          t.initStore.set(p, v.update)
-          Reflect.set(t, 'initStore', t.initStore, r)
-          return true
+      set: (target, property, value: ErrorProxyCode, receiver) => {
+        switch (value.code) {
+          case 'INIT':
+            target.initStore.set(property, value.cb)
+            Reflect.set(target, 'initStore', target.initStore, receiver)
+            break
+          case 'UPDATE':
+            const udpateValue = target.initStore.get(property)
+            if (!udpateValue) {
+              break
+            }
+            target.mssgStore.set(property, value.value)
+            Reflect.set(target, 'mssgStore', target.mssgStore, receiver)
+            udpateValue()
+            break
+          case 'REFRESH':
+            target.mssgStore.delete(property)
+            target.initStore.get(property)?.()
+            break
+          case 'RESET':
+            Reflect.set(target, 'mssgStore', new Map(), receiver)
+            break
+          case 'DELETE':
+            target.mssgStore.delete(property)
+            target.initStore.delete(property)
+            Reflect.set(target, 'mssgStore', target.mssgStore, receiver)
+            Reflect.set(target, 'initStore', target.initStore, receiver)
+            break
+          case 'RESET_AND_UPDATE':
+            Reflect.set(target, 'mssgStore', new Map(), receiver)
+            for (const [, v] of target.initStore) {
+              v()
+            }
+            break
+          default:
+            return Reflect.set(target, property, value, receiver)
         }
-        if (v.code === 'UPDATE') {
-          const udpateValue = t.initStore.get(p)
-          if (!udpateValue) {
-            return true
-          }
-          t.mssgStore.set(p, v.value)
-          Reflect.set(t, 'mssgStore', t.mssgStore, r)
-          udpateValue()
-          return true
-        }
-        if (v.code === 'REFRESH') {
-          t.mssgStore.delete(p)
-          t.initStore.get(p)?.()
-          return true
-        }
-        if (v.code === 'RESET') {
-          Reflect.set(t, 'mssgStore', new Map(), r)
-          return true
-        }
-        if (v.code === 'DELETE') {
-          t.mssgStore.delete(p)
-          t.initStore.delete(p)
-          Reflect.set(t, 'mssgStore', t.mssgStore, r)
-          Reflect.set(t, 'initStore', t.initStore, r)
-          return true
-        }
-        if (v.code === 'RESET_AND_UPDATE') {
-          Reflect.set(t, 'mssgStore', new Map(), r)
-          for (const [, v] of t.initStore) {
-            v()
-          }
-          return true
-        }
+
         return true
       },
-      get: (t, p: string) => {
-        return t.mssgStore.get(p)
+      get: (target, property: string) => {
+        return target.mssgStore.get(property)
       },
     }
-  )
-
-export default createErrorProxy
+  ) as any
+}
