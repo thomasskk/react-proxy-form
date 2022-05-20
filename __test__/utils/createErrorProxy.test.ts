@@ -2,21 +2,24 @@ import { test, describe, expect, vi } from 'vitest'
 import {
   createErrorProxy,
   ErrorProxyCode,
+  initStore,
+  mssgStore,
 } from '../../src/utils/createErrorProxy'
 
 describe('createErrorProxy', () => {
-  test('INIT', () => {
+  test('SET', () => {
     const proxy = createErrorProxy()
     const cb = vi.fn()
-    proxy['foo'] = { code: 'INIT', cb } as ErrorProxyCode
-    expect(proxy.initStore.get('foo')).toEqual(cb)
+    proxy['foo'] = { code: 'SET', cb } as ErrorProxyCode
+    expect(proxy[initStore].get('foo')).toEqual(cb)
   })
   test('UPDATE', () => {
     const proxy = createErrorProxy()
     const cb = vi.fn()
+    proxy['foo'] = { code: 'SET', cb } as ErrorProxyCode
     proxy['foo'] = { code: 'UPDATE', value: 'bar' } as ErrorProxyCode
-    proxy['foo'] = { code: 'DELETE' }
-    expect(proxy.store.get('foo')).toBeUndefined()
+    expect(cb).toHaveBeenCalledOnce()
+    expect(proxy[mssgStore].get('foo')).toEqual('bar')
   })
   test('REFRESH', () => {
     const proxy = createErrorProxy()

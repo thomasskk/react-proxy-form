@@ -1,10 +1,13 @@
 export type ErrorProxyCode =
-  | { code: 'INIT'; cb: () => void }
+  | { code: 'SET'; cb: () => void }
   | { code: 'UPDATE'; value: string }
   | { code: 'RESET_AND_UPDATE' }
   | { code: 'REFRESH' }
   | { code: 'RESET' }
   | { code: 'DELETE' }
+
+export const initStore = Symbol('initStore')
+export const mssgStore = Symbol('mssgStore')
 
 export const createErrorProxy = () => {
   return new Proxy(
@@ -15,7 +18,7 @@ export const createErrorProxy = () => {
     {
       set: (target, property, value: ErrorProxyCode, receiver) => {
         switch (value.code) {
-          case 'INIT':
+          case 'SET':
             target.initStore.set(property, value.cb)
             Reflect.set(target, 'initStore', target.initStore, receiver)
             break
@@ -53,7 +56,13 @@ export const createErrorProxy = () => {
 
         return true
       },
-      get: (target, property: string) => {
+      get: (target, property) => {
+        if (property === initStore) {
+          return target.initStore
+        }
+        if (property === mssgStore) {
+          return target.mssgStore
+        }
         return target.mssgStore.get(property)
       },
     }
