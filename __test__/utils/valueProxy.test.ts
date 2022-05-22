@@ -1,14 +1,10 @@
 import { test, describe, expect, vi } from 'vitest'
-import {
-  createValueProxy,
-  isProxy,
-  proxyKeys,
-} from '../../src/utils/createValueProxy'
+import { valueProxy, isProxy, proxyKeys } from '../../src/utils/valueProxy'
 
-describe('createValueProxy', () => {
+describe('valueProxy', () => {
   describe('Object value', () => {
     test('get proxy', () => {
-      const proxy = createValueProxy({
+      const proxy = valueProxy({
         value: { a: 1 } as any,
         cb: () => {},
         keys: ['b'],
@@ -22,7 +18,7 @@ describe('createValueProxy', () => {
         cb: () => {},
         keys: ['b'],
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       expect(proxy.a).toEqual(1)
     })
     test('set with property in keys', () => {
@@ -31,7 +27,7 @@ describe('createValueProxy', () => {
         keys: ['a'],
         value: { a: 1 },
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       proxy.a = 2
       expect(args.cb).toHaveBeenCalledOnce()
     })
@@ -41,7 +37,7 @@ describe('createValueProxy', () => {
         keys: [],
         value: { a: 1 },
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       proxy.a = 2
       expect(proxy.a).toEqual(2)
       expect(args.cb).toHaveBeenCalledTimes(0)
@@ -52,7 +48,7 @@ describe('createValueProxy', () => {
         keys: ['a'],
         value: { a: undefined },
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       proxy.a = undefined
       expect(args.cb).toHaveBeenCalledTimes(0)
       expect(proxy).toEqual({})
@@ -65,7 +61,7 @@ describe('createValueProxy', () => {
         keys: ['0'],
         value: [0, 1],
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       expect(proxy[isProxy as any]).toBeTruthy()
       expect(proxy[proxyKeys as any]).toStrictEqual(args.keys)
     })
@@ -75,7 +71,7 @@ describe('createValueProxy', () => {
         cb: () => {},
         keys: ['0'],
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       expect(proxy[0]).toEqual(args.value[0])
     })
     test('set with property in keys', () => {
@@ -84,7 +80,7 @@ describe('createValueProxy', () => {
         cb: vi.fn(),
         keys: ['0'],
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       proxy[0] = 2
       expect(proxy[0]).toEqual(2)
       expect(args.cb).toHaveBeenCalledOnce()
@@ -95,7 +91,7 @@ describe('createValueProxy', () => {
         cb: vi.fn(),
         keys: [],
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       proxy[0] = 2
       expect(proxy[0]).toEqual(2)
       expect(args.cb).toHaveBeenCalledTimes(0)
@@ -106,7 +102,7 @@ describe('createValueProxy', () => {
         cb: vi.fn(),
         keys: ['0'],
       }
-      const proxy = createValueProxy(args)
+      const proxy = valueProxy(args)
       proxy[0] = undefined
       expect(args.cb).toHaveBeenCalledTimes(0)
       expect(proxy).toEqual([1])

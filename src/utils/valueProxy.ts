@@ -4,7 +4,7 @@ export const isProxy = Symbol('__PROXY__')
 export const proxyKeys = Symbol('__KEYS__')
 
 // trigger cb on set when property is in keys and its value is changed
-export const createValueProxy = <
+export const valueProxy = <
   T extends ObjType | ArrayType,
   K extends (string | symbol)[]
 >(args: {
@@ -39,9 +39,6 @@ export const createValueProxy = <
         return true
       }
 
-      // !!
-      // cb before set ?
-      // !!
       Reflect.set(target, property, value, receiver)
       cb()
       return true

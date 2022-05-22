@@ -1,20 +1,22 @@
 import { useReducer, useRef, useState } from 'react'
 import {
-  DeepPartial,
   DefaultValue,
   El,
   eventEl,
   GetValue,
   HandleSubmit,
+  ObjType,
   RefElValue,
   SetDefaultValue,
   SetValue,
   UseFormProps,
   UseFormRegister,
   UseFormReturn,
+  Watch,
 } from './types'
-import createErrorProxy from './utils/createErrorProxy'
-import { createUpdateProxy } from './utils/createUpdateProxy'
+import { DeepPartial } from './types/utils'
+import { errorProxy } from './utils/errorProxy'
+import { updateProxy } from './utils/updateProxy'
 import { error } from './utils/error'
 import { get } from './utils/get'
 import { isStringDate } from './utils/isHelper'
@@ -23,12 +25,12 @@ import set from './utils/set'
 import { unset } from './utils/unset'
 import { watcher } from './utils/watcher'
 
-export function useForm<T>(
-  props: UseFormProps<T> = {
+export function useForm<T extends ObjType, S extends ObjType = never>(
+  props: UseFormProps<T, S> = {
     autoUnregister: false,
     resetOnSubmit: true,
   }
-): UseFormReturn<T> {
+): UseFormReturn<T, S> {
   const {
     defaultValue,
     validation: _validation,
@@ -38,35 +40,31 @@ export function useForm<T>(
     resetOnSubmit: _resetOnSubmit,
     setAfterSubmit: _setAfterSubmit,
   } = props
-  const [depUpdate, forceDepUpdate] = useState(0)
-  const watchStore = useRef(new Set<string>())
-
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
-  const [_defaultFormValue, _setdefaultFormValue] = useState<
-    DeepPartial<T> | undefined
-  >(defaultValue)
+  const [_defaultFormValue, _setdefaultFormValue] = useState(defaultValue)
 
   const formSValue = useRef(
     _sideValidation?.defaultValue
-      ? { value: { ..._sideValidation?.defaultValue } }
-      : { value: {} }
+      ? { value: { ..._sideValidation.defaultValue } }
+      : { value: {} as DeepPartial<S> }
   )
-  const formSErrors = useRef<any>(createErrorProxy())
+  const formSErrors = useRef(errorProxy())
+  const watchStore = useRef(new Set<string>())
 
   const formValue = useRef(
     _defaultFormValue !== undefined
       ? { value: { ..._defaultFormValue } }
-      : { value: {} }
+      : { value: {} as DeepPartial<T> }
   )
 
-  const formErrors = useRef<any>(createErrorProxy())
+  const formErrors = useRef(errorProxy())
 
-  const updateStore = useRef<any>(createUpdateProxy())
+  const updateStore = useRef(updateProxy())
 
-  const isDefaultSet = useRef<any>(false)
+  const isDefaultSet = useRef(false)
 
-  const prevErrors = useRef<any>(false)
-  const prevSErrors = useRef<any>(false)
+  const prevErrors = useRef(false)
+  const prevSErrors = useRef(false)
 
   const refEl = useRef<Map<string, RefElValue>>(new Map())
 
@@ -74,15 +72,14 @@ export function useForm<T>(
     formSValue.current.value = _sideValidation?.defaultValue
       ? { ..._sideValidation?.defaultValue }
       : {}
-    formValue.current.value =
-      _defaultFormValue !== undefined ? { ..._defaultFormValue } : {}
+    formValue.current.value
+    _defaultFormValue !== undefined ? { ..._defaultFormValue } : {}
     isDefaultSet.current = false
     refEl.current = new Map()
     formErrors.current.err = { code: 'RESET' }
     formSErrors.current.err = { code: 'RESET' }
     updateStore.current.up = { code: 'RESET' }
     forceUpdate()
-    forceDepUpdate((v) => v + 1)
   }
 
   const setDefaultValue: SetDefaultValue<T> = (value) => {
@@ -184,10 +181,20 @@ export function useForm<T>(
     return !isSErrors && !isErrors
   }
 
-  const watch = (path: string, opts = { side: false }) => {
+  // @ts-expect-error
+  const watch: Watch<DeepPartial<T>, DeepPartial<S>> = (
+    path,
+    // @ts-expect-error
+    opts = { side: false }
+  ) => {
+    const object = opts.side
+      ? formSValue.current.value
+      : formValue.current.value
+
     return watcher({
+      // @ts-expect-error
       path,
-      object: opts.side ? formSValue.current.value : formValue.current.value,
+      object,
       updateStore: updateStore.current,
       watchStore: watchStore.current,
     })
@@ -425,6 +432,13 @@ export function useForm<T>(
         ) {
           validate(_sideValueName, true)
         }
+
+        const watchValue = watchStore.current.has(_name)
+
+        if (watchValue) {
+          updateStore.current[_name] = { code: 'UPDATE' }
+        }
+
         _onChange?.(event)
       },
       ref: (el: El) => {

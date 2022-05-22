@@ -1,4 +1,4 @@
-import { isProxy } from './createValueProxy'
+import { isProxy } from './valueProxy'
 import { dotPathReader } from './dotPathReader'
 import { isObject, isObjWritable } from './isHelper'
 
@@ -10,10 +10,20 @@ export const unset = (object: Record<string, any>, path: string) => {
     switch (true) {
       case index == length - 1:
         if (acc !== undefined) {
-          delete acc[cv]
+          // !!
+          // edge case keep undefined ?
+          // !!
+          if (Array.isArray(acc)) {
+            acc.splice(cv as number, 1)
+          } else {
+            delete acc[cv]
+          }
         }
         break
       case index == length - 2:
+        // !!
+        // edge case keep empty ?
+        // !!
         if (isObject(acc[cv]) && !acc[cv][isProxy]) {
           const objKeys = Object.keys(acc[cv])
           if (

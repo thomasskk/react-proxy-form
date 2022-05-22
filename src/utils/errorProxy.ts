@@ -9,7 +9,7 @@ export type ErrorProxyCode =
 export const initStore = Symbol('initStore')
 export const mssgStore = Symbol('mssgStore')
 
-export const createErrorProxy = () => {
+export const errorProxy = () => {
   return new Proxy(
     {
       initStore: new Map<string | symbol, () => void>(),
@@ -23,17 +23,18 @@ export const createErrorProxy = () => {
             Reflect.set(target, 'initStore', target.initStore, receiver)
             break
           case 'UPDATE':
-            const udpateValue = target.initStore.get(property)
-            if (!udpateValue) {
+            const UPDATE_cb = target.initStore.get(property)
+            if (!UPDATE_cb) {
               break
             }
             target.mssgStore.set(property, value.value)
             Reflect.set(target, 'mssgStore', target.mssgStore, receiver)
-            udpateValue()
+            UPDATE_cb()
             break
           case 'REFRESH':
             target.mssgStore.delete(property)
-            target.initStore.get(property)?.()
+            const REFRESH_cb = target.initStore.get(property)
+            REFRESH_cb?.()
             break
           case 'RESET':
             Reflect.set(target, 'mssgStore', new Map(), receiver)

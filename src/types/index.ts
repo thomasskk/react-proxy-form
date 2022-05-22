@@ -1,48 +1,6 @@
 import { ObjectType } from '@badrap/valita'
 import { ChangeEvent } from 'react'
-
-export type Join<T extends unknown[]> = T extends [string]
-  ? `${T[0]}`
-  : T extends [number] | []
-  ? `[${T[0]}]`
-  : T extends [string, ...infer R]
-  ? `${T[0]}${'.'}${Join<R>}` | T[0]
-  : T extends [number, ...infer R]
-  ? `[${T[0]}]${'.'}${Join<R>}` | `[${T[0]}]`
-  : string
-
-export type NestedPaths<T> = T extends undefined
-  ? any
-  : T extends string | number | boolean | Date
-  ? []
-  : T extends Array<infer ArrayT>
-  ? [number, ...NestedPaths<ArrayT>]
-  : T extends ReadonlyArray<infer ArrayT>
-  ? [number, ...NestedPaths<ArrayT>]
-  : T extends object
-  ? {
-      [Key in Extract<keyof T, string>]: [Key, ...NestedPaths<T[Key]>]
-    }[Extract<keyof T, string>]
-  : []
-
-export type Path<T> = Join<NestedPaths<T>>
-
-export type PropertyType<
-  Type,
-  Property extends string
-> = Property extends keyof Type
-  ? Type[Property]
-  : Property extends `${infer Key}.${infer Rest}`
-  ? Key extends `[${infer Prefix}]`
-    ? // @ts-expect-error is a number
-      PropertyType<Type[Prefix], Rest>
-    : Key extends keyof Type
-    ? PropertyType<Type[Key], Rest>
-    : unknown
-  : Property extends `[${infer Prefix}]`
-  ? // @ts-expect-error is a number
-    Type[Prefix]
-  : unknown
+import { DeepPartial, Path, PropertyType } from './utils'
 
 export type Primitive =
   | boolean
@@ -53,13 +11,14 @@ export type Primitive =
   | bigint
   | undefined
 
-export type Obj = Record<string | number | symbol, Primitive>
-export type ArrayType = (ObjType | Primitive)[]
+type Obj = Record<string | number | symbol, Primitive>
 
 type BaseObjType<T> = Record<
   string | number | symbol,
   T | Obj | Primitive | ArrayType
 >
+
+export type ArrayType = (ObjType | Primitive)[]
 export interface ObjType extends BaseObjType<ObjType> {}
 
 export type El =
@@ -74,7 +33,7 @@ export type eventEl =
   | ChangeEvent<HTMLSelectElement>
   | ChangeEvent<null>
 
-type useFormBaseProps<T = unknown, S = unknown> = {
+type useFormBaseProps<T extends ObjType, S extends ObjType = never> = {
   defaultValue?: DeepPartial<T>
   sideValidation?: {
     defaultValue?: DeepPartial<S>
@@ -86,7 +45,10 @@ type useFormBaseProps<T = unknown, S = unknown> = {
   setBeforeSubmit?: Record<string, unknown>
 }
 
-export type UseFormProps<T, S = unknown> = useFormBaseProps<T, S> & {
+export type UseFormProps<
+  T extends ObjType,
+  S extends ObjType = never
+> = useFormBaseProps<T, S> & {
   validation?: ObjectType
 }
 
@@ -98,7 +60,16 @@ export type GetValue<T> = <P extends Path<T>>(path: P) => PropertyType<T, P>
 export type SetDefaultValue<T> = (value: DeepPartial<T>) => void
 export type Errors<T> = (path: Path<T>) => any
 
-export type UseFormReturn<T, S = unknown> = {
+export type Watch<T extends ObjType, S extends ObjType> = <
+  P extends Path<K>,
+  B extends boolean = false,
+  K = B extends true ? S : T
+>(
+  path: P,
+  opts?: { side: B }
+) => PropertyType<K, P>
+
+export type UseFormReturn<T extends ObjType, S extends ObjType = never> = {
   register: UseFormRegister<T>
   reset: () => void
   errors: Errors<T>
@@ -111,10 +82,7 @@ export type UseFormReturn<T, S = unknown> = {
   getAllValue: () => T
   getAllSideValue: () => S
   setDefaultValue: SetDefaultValue<T>
-  watch: <P extends Path<T>>(
-    path: P,
-    opts?: { side: boolean }
-  ) => PropertyType<T, P>
+  watch: Watch<T, S>
 }
 
 export type DefaultValue = string | number | Date | null | undefined
@@ -167,10 +135,6 @@ export type SubmitHandler<T> = (data: T) => void
 export type HandleSubmit<T> = (
   cb: (data: T) => void
 ) => (event?: React.BaseSyntheticEvent) => void
-
-export type DeepPartial<T> = {
-  [P in keyof T]?: DeepPartial<T[P]>
-}
 
 export type ValueType =
   | StringConstructor

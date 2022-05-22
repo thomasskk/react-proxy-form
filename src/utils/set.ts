@@ -1,8 +1,8 @@
-import { isProxy } from './createValueProxy'
+import { isProxy } from './valueProxy'
 import { dotPathReader } from './dotPathReader'
 import { isObject } from './isHelper'
 
-const set = (
+export const set = (
   object: Record<string, any>,
   path: string,
   value?: unknown,
@@ -38,5 +38,3 @@ const set = (
     return acc[cv]
   }, object)
 }
-
-export default set
