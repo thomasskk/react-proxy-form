@@ -21,7 +21,7 @@ import { error } from './utils/error'
 import { get } from './utils/get'
 import { isStringDate } from './utils/isHelper'
 import { resolver } from './utils/resolver'
-import set from './utils/set'
+import { set } from './utils/set'
 import { unset } from './utils/unset'
 import { watcher } from './utils/watcher'
 
@@ -182,14 +182,9 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
   }
 
   // @ts-expect-error
-  const watch: Watch<DeepPartial<T>, DeepPartial<S>> = (
-    path,
-    // @ts-expect-error
-    opts = { side: false }
-  ) => {
-    const object = opts.side
-      ? formSValue.current.value
-      : formValue.current.value
+  const watch: Watch<DeepPartial<T>, DeepPartial<S>> = (path, opts = {}) => {
+    const { side = false, defaultValue } = opts
+    const object = side ? formSValue.current.value : formValue.current.value
 
     return watcher({
       // @ts-expect-error
@@ -197,6 +192,7 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
       object,
       updateStore: updateStore.current,
       watchStore: watchStore.current,
+      defaultValue,
     })
   }
 

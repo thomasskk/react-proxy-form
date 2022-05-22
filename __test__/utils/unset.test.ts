@@ -21,25 +21,13 @@ describe('unset', () => {
       a: [{ b: 1 }, { c: 2 }],
     }
     unset(t3, 'a.[1].c')
-    expect(t3).toStrictEqual({
-      a: [{ b: 1 }, {}],
+    expect(t3).toEqual({
+      a: [{ b: 1 }, undefined],
     })
-
-    const t4 = {
-      a: { b: 1 },
-    }
-    unset(t4, 'a.c.[0]')
-    expect(t4).toStrictEqual({ a: { b: 1 } })
-
-    const t5 = {
-      a: { b: 1 },
-    }
-    unset(t5, 'a.b.c')
-    expect(t5).toStrictEqual({ a: { b: {} } })
 
     const t6 = [{ a: 1 }]
     unset(t6, '[0].a')
-    expect(t6).toStrictEqual([{}])
+    expect(t6).toEqual([undefined])
 
     const t7 = {
       a: { b: 1 },

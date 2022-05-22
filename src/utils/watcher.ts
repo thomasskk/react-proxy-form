@@ -12,12 +12,13 @@ export const watcher = <P extends Path<O>, O extends ObjType>(args: {
   path: P
   updateStore: any
   watchStore: Set<string>
+  defaultValue?: any
 }) => {
-  const { object, path, updateStore, watchStore } = args
+  const { object, path, updateStore, watchStore, defaultValue } = args
 
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
-  const key = useRef<any>('dflt')
-  const value = useRef<any>({ dflt: get(object, path) })
+  const key = useRef<any>('default')
+  const value = useRef<any>({ default: defaultValue ?? get(object, path) })
 
   useEffect(() => {
     const setProxyFn = () => {
@@ -41,7 +42,7 @@ export const watcher = <P extends Path<O>, O extends ObjType>(args: {
       }, object)
     }
 
-    if (get(object, path) === undefined) {
+    if (value.current?.[key.current] === undefined) {
       watchStore.add(path)
       updateStore[path] = <UPC>{
         code: 'SET',

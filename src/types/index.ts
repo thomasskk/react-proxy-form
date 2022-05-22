@@ -66,7 +66,7 @@ export type Watch<T extends ObjType, S extends ObjType> = <
   K = B extends true ? S : T
 >(
   path: P,
-  opts?: { side: B }
+  opts?: { side?: B; defaultValue: PropertyType<K, P> }
 ) => PropertyType<K, P>
 
 export type UseFormReturn<T extends ObjType, S extends ObjType = never> = {
@@ -93,6 +93,7 @@ export type ValueAs =
   | 'date'
   | undefined
   | (() => void)
+
 export type InputType =
   | 'checkbox'
   | 'radio'
@@ -128,6 +129,8 @@ export type UseFormRegisterReturn = {
   ref: (el: El) => void
   name: string
   defaultValue: string | number | undefined
+  type: InputType
+  defaultChecked?: boolean
 }
 
 export type SubmitHandler<T> = (data: T) => void
