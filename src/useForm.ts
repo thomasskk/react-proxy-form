@@ -359,32 +359,39 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
     const valueType = defineType(_type, _valueAs)
     const sideValueType = defineType(_type, _sideValueAs)
 
-    let defaultValue: DefaultValue
+    let defaultValue: DefaultValue = _defaultValue
     let defaultChecked = _defaultChecked
 
     if (!_autoUnregister) {
       const v = getValue(_name as any)
       if (v !== undefined) {
-        if (_type == 'radio' && _valueAs == 'boolean') {
-          defaultChecked = !!_value == !!v
-        } else if (_type === 'date' || _type === 'datetime-local') {
-          const sliceEnd = _type === 'date' ? 10 : -1
-          defaultValue = new Date(v).toISOString().slice(0, sliceEnd)
-        } else if (_type != 'checkbox' && _type != 'radio') {
-          defaultValue = v
+        switch (true) {
+          case _type === 'radio' && _valueAs === 'boolean':
+            defaultChecked = !!_value === !!v
+            break
+          case _type === 'date' || _type === 'datetime-local':
+            defaultValue = new Date(v)
+              .toISOString()
+              .slice(0, _type === 'date' ? 10 : -1)
+            break
+          case _type !== 'checkbox' && _type !== 'radio':
+            defaultValue = v
+            break
         }
       }
-    } else if (
-      (_type === 'date' || _type === 'datetime-local') &&
-      isStringDate(_defaultValue)
-    ) {
-      const sliceEnd = _type === 'date' ? 10 : -1
-      defaultValue = new Date(_defaultValue).toISOString().slice(0, sliceEnd)
     } else {
-      if (_defaultValue !== undefined) {
-        defaultValue = _defaultValue
-      } else if (_type != 'radio') {
-        defaultValue = get(_defaultFormValue, _name)
+      switch (true) {
+        case _type === 'date' || _type === 'datetime-local':
+          defaultValue = new Date(_defaultValue)
+            .toISOString()
+            .slice(0, _type === 'date' ? 10 : -1)
+          break
+        case _defaultValue !== undefined:
+          defaultValue = _defaultValue
+          break
+        case _type !== 'radio':
+          defaultValue = get(_defaultFormValue, _name)
+          break
       }
     }
 
@@ -393,14 +400,13 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
       name: _name,
     }
 
-    if (_value !== undefined) {
-      props.value = _value
-    }
-    if (defaultChecked !== undefined) {
-      props.defaultChecked = defaultChecked
-    }
-    if (defaultValue !== undefined) {
-      props.defaultValue = defaultValue
+    switch (true) {
+      case _value !== undefined:
+        props.value = _value
+      case defaultChecked !== undefined:
+        props.defaultChecked = defaultChecked
+      case defaultValue !== undefined:
+        props.defaultValue = defaultValue
     }
 
     return {

@@ -13,7 +13,7 @@ export const set = (
 
   arrPath.reduce((acc, cv, index) => {
     switch (true) {
-      case index == length - offset:
+      case index === length - offset:
         if (value !== undefined) {
           acc[cv] = value
         } else {
@@ -28,7 +28,7 @@ export const set = (
       case Array.isArray(acc[cv]):
         acc[cv] = [...acc[cv]]
         break
-      case typeof arrPath[index + 1] == 'number':
+      case typeof arrPath[index + 1] === 'number':
         acc[cv] = []
         break
       default:

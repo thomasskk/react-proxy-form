@@ -8,7 +8,7 @@ import userEvent from '@testing-library/user-event'
 
 describe('useForm', () => {
   describe('watch', () => {
-    test('update the value on type', async () => {
+    test('update on type', async () => {
       let watched: number | undefined
       const Component = () => {
         const { watch, register } = useForm<
@@ -29,7 +29,7 @@ describe('useForm', () => {
     })
   })
   describe('register', () => {
-    test('return default value', () => {
+    test('return defaultValue', () => {
       const { result } = renderHook(() =>
         useForm({
           defaultValue: { a: { b: 1 } },
@@ -39,59 +39,50 @@ describe('useForm', () => {
         defaultValue: 1,
       })
     })
-    test('return name', () => {
+    test('return right default value', () => {
       const { result } = renderHook(() => useForm())
-      expect(result.current.register('a.b').name).toEqual('a.b')
+      const { ref, name, value, type, onChange, defaultValue, defaultChecked } =
+        result.current.register(undefined as any)
+      expect(onChange).toBeInstanceOf(Function)
+      expect(ref).toBeInstanceOf(Function)
+      expect(name).toBeUndefined()
+      expect(type).toEqual('text')
+      expect(defaultValue).toBeUndefined()
+      expect(defaultChecked).toBeUndefined()
+      expect(value).toBeUndefined()
     })
-    test('return default type text', () => {
-      const { result } = renderHook(() => useForm())
-      expect(result.current.register('a.b').type).toEqual('text')
-    })
-    test('return onChange function', () => {
-      const { result } = renderHook(() => useForm())
-      expect(result.current.register('').onChange).toBeInstanceOf(Function)
-    })
-    test('return ref function', () => {
-      const { result } = renderHook(() => useForm())
-      expect(result.current.register('').ref).toBeInstanceOf(Function)
-    })
-    test('return defaultChecked undefined for radio', () => {
-      const { result } = renderHook(() => useForm())
-      expect(
-        result.current.register('', {
-          type: 'radio',
-          valueAs: 'boolean',
-        }).defaultChecked
-      ).toBeUndefined()
-    })
-    test('return right type', () => {
+    test('return right value', () => {
       const { result } = renderHook(() => useForm())
       expect(
         result.current.register('a.b', {
+          defaultValue: 1,
           type: 'radio',
-        }).type
-      ).toEqual('radio')
-    })
-    test('return defaultChecked for radio with defaultValue', () => {
-      const { result } = renderHook(() =>
-        useForm({
-          defaultValue: { a: { b: true } },
+          value: 2,
+          defaultChecked: true,
         })
-      )
+      ).toMatchObject({
+        defaultValue: 1,
+        type: 'radio',
+        value: 2,
+        defaultChecked: true,
+        name: 'a.b',
+      })
+    })
+    test('return defaultChecked as defaultValue for radio', () => {
+      const { result } = renderHook(() => useForm())
       expect(
         result.current.register('a.b', {
           type: 'radio',
-          valueAs: 'boolean',
-          value: true,
+          defaultChecked: true,
         }).defaultChecked
       ).toEqual(true)
       expect(
         result.current.register('a.b', {
           type: 'radio',
-          valueAs: 'boolean',
-          value: false,
+          defaultChecked: false,
         }).defaultChecked
       ).toEqual(false)
     })
+    test('', () => {})
   })
 })

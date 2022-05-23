@@ -131,6 +131,7 @@ export type UseFormRegisterReturn = {
   defaultValue: string | number | undefined
   type: InputType
   defaultChecked?: boolean
+  value: any
 }
 
 export type SubmitHandler<T> = (data: T) => void

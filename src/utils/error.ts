@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react'
-import { ErrorProxyCode } from './createErrorProxy'
+import { ErrorProxyCode } from './errorProxy'
 
 export const error = (prox: Record<string, any>, name: string) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
