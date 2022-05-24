@@ -29,60 +29,89 @@ describe('useForm', () => {
     })
   })
   describe('register', () => {
-    test('return defaultValue', () => {
-      const { result } = renderHook(() =>
-        useForm({
-          defaultValue: { a: { b: 1 } },
+    describe('defaultValue', () => {
+      test('return defaultValue', () => {
+        const { result } = renderHook(() =>
+          useForm({
+            defaultValue: { a: { b: 1 } },
+          })
+        )
+        expect(result.current.register('a.b')).toMatchObject({
+          defaultValue: 1,
         })
-      )
-      expect(result.current.register('a.b')).toMatchObject({
-        defaultValue: 1,
       })
     })
-    test('return right default value', () => {
-      const { result } = renderHook(() => useForm())
-      const { ref, name, value, type, onChange, defaultValue, defaultChecked } =
-        result.current.register(undefined as any)
-      expect(onChange).toBeInstanceOf(Function)
-      expect(ref).toBeInstanceOf(Function)
-      expect(name).toBeUndefined()
-      expect(type).toEqual('text')
-      expect(defaultValue).toBeUndefined()
-      expect(defaultChecked).toBeUndefined()
-      expect(value).toBeUndefined()
+    describe('args return', () => {
+      test('default value', () => {
+        const { result } = renderHook(() => useForm())
+        const {
+          ref,
+          name,
+          value,
+          type,
+          onChange,
+          defaultValue,
+          defaultChecked,
+        } = result.current.register(undefined as any)
+        expect(onChange).toBeInstanceOf(Function)
+        expect(ref).toBeInstanceOf(Function)
+        expect(name).toBeUndefined()
+        expect(type).toEqual('text')
+        expect(defaultValue).toBeUndefined()
+        expect(defaultChecked).toBeUndefined()
+        expect(value).toBeUndefined()
+      })
     })
-    test('return right value', () => {
-      const { result } = renderHook(() => useForm())
-      expect(
-        result.current.register('a.b', {
+    describe('autoUnregister=false', () => {
+      test('right value', () => {
+        const { result } = renderHook(() => useForm())
+        expect(
+          result.current.register('a.b', {
+            defaultValue: 1,
+            type: 'radio',
+            value: 2,
+            defaultChecked: true,
+          })
+        ).toMatchObject({
           defaultValue: 1,
           type: 'radio',
           value: 2,
           defaultChecked: true,
+          name: 'a.b',
         })
-      ).toMatchObject({
-        defaultValue: 1,
-        type: 'radio',
-        value: 2,
-        defaultChecked: true,
-        name: 'a.b',
       })
-    })
-    test('return defaultChecked as defaultValue for radio', () => {
-      const { result } = renderHook(() => useForm())
-      expect(
-        result.current.register('a.b', {
-          type: 'radio',
-          defaultChecked: true,
-        }).defaultChecked
-      ).toEqual(true)
-      expect(
-        result.current.register('a.b', {
-          type: 'radio',
-          defaultChecked: false,
-        }).defaultChecked
-      ).toEqual(false)
+      test('return defaultChecked as defaultValue for radio', () => {
+        const { result } = renderHook(() => useForm())
+        expect(
+          result.current.register('a.b', {
+            type: 'radio',
+            defaultChecked: true,
+          }).defaultChecked
+        ).toEqual(true)
+        expect(
+          result.current.register('a.b', {
+            type: 'radio',
+            defaultChecked: false,
+          }).defaultChecked
+        ).toEqual(false)
+      })
     })
     test('', () => {})
   })
+  test('return defaultChecked as defaultValue for radio', () => {
+    const { result } = renderHook(() => useForm())
+    expect(
+      result.current.register('a.b', {
+        type: 'radio',
+        defaultChecked: true,
+      }).defaultChecked
+    ).toEqual(true)
+    expect(
+      result.current.register('a.b', {
+        type: 'radio',
+        defaultChecked: false,
+      }).defaultChecked
+    ).toEqual(false)
+  })
+  test('', () => {})
 })
