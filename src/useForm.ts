@@ -1,6 +1,5 @@
 import { useReducer, useRef, useState } from 'react'
 import {
-  DefaultValue,
   El,
   eventEl,
   GetValue,
@@ -23,6 +22,7 @@ import { resolver } from './utils/resolver'
 import { set } from './utils/set'
 import { unset } from './utils/unset'
 import { watcher } from './utils/watcher'
+import { isStringDate } from './utils/isHelper'
 
 export function useForm<T extends ObjType, S extends ObjType = never>(
   props: UseFormProps<T, S> = {
@@ -39,6 +39,7 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
     resetOnSubmit: _resetOnSubmit,
     setAfterSubmit: _setAfterSubmit,
   } = props
+
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const [_defaultFormValue, _setdefaultFormValue] = useState(defaultValue)
 
@@ -104,17 +105,24 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
         unset(formSValue.current.value, entry[1].sideValueName)
       }
     }
-    return formSValue.current.value as T
+    return formSValue.current.value as S
   }
 
-  const getValue: GetValue<T> = (path) => get(formValue.current.value, path)
-  const getSideValue: GetValue<T> = (path) =>
-    get(formSValue.current.value, path)
+  const getValue: GetValue<T> = (path) => {
+    return get(formValue.current.value, path)
+  }
 
-  const setValue: SetValue<T> = (name, value) =>
-    set(formValue.current.value, name, value)
-  const setSideValue: SetValue<T> = (name, value) =>
-    set(formSValue.current.value, name, value)
+  const getSideValue: GetValue<S> = (path) => {
+    return get(formSValue.current.value, path)
+  }
+
+  const setValue: SetValue<T> = (name, value) => {
+    return set(formValue.current.value, name, value)
+  }
+
+  const setSideValue: SetValue<S> = (name, value) => {
+    return set(formSValue.current.value, name, value)
+  }
 
   const validate = (name: string, side: boolean) => {
     const isValidation = _validation
@@ -153,9 +161,11 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
         formErrors.current,
         undefined
       )
+
       if (!isErrors && prevErrors.current) {
         formErrors.current.err = { code: 'RESET_AND_UPDATE' }
       }
+
       formErrors.current.err = { code: 'A' }
 
       prevErrors.current = isErrors
@@ -310,6 +320,7 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
         set(formValue.current.value, key, value)
       }
     }
+
     callback(getAllValue())
 
     if (_resetOnSubmit) {
@@ -358,40 +369,30 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
     const valueType = defineType(_type, _valueAs)
     const sideValueType = defineType(_type, _sideValueAs)
 
-    let defaultValue: DefaultValue = _defaultValue
     let defaultChecked = _defaultChecked
+    let defaultValue = _defaultValue
 
-    if (!_autoUnregister) {
-      const v = getValue(_name as any)
-      if (v !== undefined) {
-        switch (true) {
-          case _type === 'radio' && _valueAs === 'boolean':
-            defaultChecked = !!_value === !!v
-            break
-          case _type === 'date' || _type === 'datetime-local':
-            defaultValue = new Date(v)
-              .toISOString()
-              .slice(0, _type === 'date' ? 10 : -1)
-            break
-          case _type !== 'checkbox' && _type !== 'radio':
-            defaultValue = v
-            break
-        }
-      }
+    let value
+
+    if (_autoUnregister) {
+      value = get(_defaultFormValue, _name) ?? _value
     } else {
-      switch (true) {
-        case _type === 'date' || _type === 'datetime-local':
-          defaultValue = new Date(_defaultValue)
-            .toISOString()
-            .slice(0, _type === 'date' ? 10 : -1)
-          break
-        case _defaultValue !== undefined:
-          defaultValue = _defaultValue
-          break
-        case _type !== 'radio':
-          defaultValue = get(_defaultFormValue, _name)
-          break
-      }
+      value = getValue(_name)
+    }
+
+    switch (true) {
+      case _type === 'radio' && _valueAs === 'boolean':
+        defaultChecked = !!_value === !!value
+        break
+      case (_type === 'date' || _type === 'datetime-local') &&
+        isStringDate(value):
+        defaultValue = new Date(value)
+          .toISOString()
+          .slice(0, _type === 'date' ? 10 : -1)
+        break
+      case _type !== 'checkbox' && _type !== 'radio':
+        defaultValue = value
+        break
     }
 
     const props: any = {
@@ -439,7 +440,6 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
         if (watchValue) {
           updateStore.current[_name] = { code: 'UPDATE' }
         }
-
         _onChange?.(event)
       },
       ref: (el: El) => {
@@ -499,6 +499,7 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
             registerSideOnly: _registerSideOnly,
           })
         }
+
         const v = refEl.current.get(_name)
 
         if (v !== undefined) {

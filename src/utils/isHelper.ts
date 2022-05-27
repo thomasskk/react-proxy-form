@@ -19,7 +19,7 @@ export const isNumber = (value: unknown): value is number => {
   return !isNaN(parseFloat(String(value))) && isFinite(Number(value))
 }
 
-export const isStringDate = (value: string) => {
+export const isStringDate = (value: unknown): value is string => {
   return (
     typeof value === 'string' &&
     /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value)

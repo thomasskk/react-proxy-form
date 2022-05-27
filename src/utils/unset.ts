@@ -2,7 +2,11 @@ import { isProxy } from './valueProxy'
 import { dotPathReader } from './dotPathReader'
 import { isObject, isObjWritable } from './isHelper'
 
-export const unset = (object: Record<string, any>, path: string) => {
+export const unset = (object: Record<string, any>, path?: string) => {
+  if (!path) {
+    return
+  }
+
   const arrPath = dotPathReader(path)
   const { length } = arrPath
 
