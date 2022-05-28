@@ -1,6 +1,6 @@
 import { useReducer, useRef, useState } from 'react'
-import {
-  El,
+import type {
+  Element,
   eventEl,
   GetValue,
   HandleSubmit,
@@ -12,28 +12,32 @@ import {
   UseFormRegister,
   UseFormReturn,
   Watch,
-} from './types'
-import { DeepPartial } from './types/utils'
-import { errorProxy } from './utils/errorProxy'
-import { updateProxy } from './utils/updateProxy'
-import { error } from './utils/error'
-import { get } from './utils/get'
-import { resolver } from './utils/resolver'
-import { set } from './utils/set'
-import { unset } from './utils/unset'
-import { watcher } from './utils/watcher'
-import { isStringDate } from './utils/isHelper'
+} from './types/index.js'
+import { DeepPartial } from './types/utils.js'
+import { errorProxy } from './utils/errorProxy.js'
+import { updateProxy } from './utils/updateProxy.js'
+import { error } from './utils/error.js'
+import { get } from './utils/get.js'
+import { resolver } from './utils/resolver.js'
+import { set } from './utils/set.js'
+import { unset } from './utils/unset.js'
+import { watcher } from './utils/watcher.js'
+import {
+  refreshSymbol,
+  resetAndUpdateSymbol,
+  resetSymbol,
+  updateSymbol,
+} from './utils/proxySymbol.js'
 
-export function useForm<T extends ObjType, S extends ObjType = never>(
-  props: UseFormProps<T, S> = {
+export function useForm<T extends ObjType>(
+  props: UseFormProps<T> = {
     autoUnregister: false,
     resetOnSubmit: true,
   }
-): UseFormReturn<T, S> {
+): UseFormReturn<T> {
   const {
     defaultValue,
     validation: _validation,
-    sideValidation: _sideValidation,
     setBeforeSubmit: _setBeforeSubmit,
     autoUnregister: _autoUnregister,
     resetOnSubmit: _resetOnSubmit,
@@ -43,12 +47,6 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const [_defaultFormValue, _setdefaultFormValue] = useState(defaultValue)
 
-  const formSValue = useRef(
-    _sideValidation?.defaultValue
-      ? { value: { ..._sideValidation.defaultValue } }
-      : { value: {} as DeepPartial<S> }
-  )
-  const formSErrors = useRef(errorProxy())
   const watchStore = useRef(new Set<string>())
 
   const formValue = useRef(
@@ -64,21 +62,16 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
   const isDefaultSet = useRef(false)
 
   const prevErrors = useRef(false)
-  const prevSErrors = useRef(false)
 
   const refEl = useRef<Map<string, RefElValue>>(new Map())
 
   const reset = () => {
-    formSValue.current.value = _sideValidation?.defaultValue
-      ? { ..._sideValidation?.defaultValue }
-      : {}
     formValue.current.value
     _defaultFormValue !== undefined ? { ..._defaultFormValue } : {}
     isDefaultSet.current = false
     refEl.current = new Map()
-    formErrors.current.err = { code: 'RESET' }
-    formSErrors.current.err = { code: 'RESET' }
-    updateStore.current.up = { code: 'RESET' }
+    formErrors.current.err = { code: resetSymbol }
+    updateStore.current.up = { code: resetSymbol }
     forceUpdate()
   }
 
@@ -92,68 +85,36 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
 
   const getAllValue = () => {
     for (const entry of refEl.current) {
-      if (_autoUnregister && !entry[1].el) {
+      if (_autoUnregister && !entry[1]) {
         unset(formValue.current.value, entry[0])
       }
     }
     return formValue.current.value as T
   }
 
-  const getAllSideValue = () => {
-    for (const entry of refEl.current) {
-      if (_autoUnregister && !entry[1].el) {
-        unset(formSValue.current.value, entry[1].sideValueName)
-      }
-    }
-    return formSValue.current.value as S
-  }
-
   const getValue: GetValue<T> = (path) => {
     return get(formValue.current.value, path)
-  }
-
-  const getSideValue: GetValue<S> = (path) => {
-    return get(formSValue.current.value, path)
   }
 
   const setValue: SetValue<T> = (name, value) => {
     return set(formValue.current.value, name, value)
   }
 
-  const setSideValue: SetValue<S> = (name, value) => {
-    return set(formSValue.current.value, name, value)
-  }
-
-  const validate = (name: string, side: boolean) => {
-    const isValidation = _validation
-    const isSValidation = _sideValidation
+  const validate = (name: string) => {
     let isError = false
-    if (!side && isValidation) {
+    if (_validation) {
       isError = resolver(_validation, getAllValue(), formErrors.current, name)
       if (!isError) {
-        formErrors.current[name] = { code: 'REFRESH' }
-      }
-    } else if (isSValidation) {
-      isError = resolver(
-        _sideValidation.validation,
-        getAllSideValue(),
-        formSErrors.current,
-        name
-      )
-      if (!isError) {
-        formSErrors.current[name] = { code: 'REFRESH' }
+        formErrors.current[name] = { code: refreshSymbol }
       }
     }
   }
 
   const validateAll = () => {
-    const isValidation = _validation
-    const isSValidation = _sideValidation
     let isErrors = false
-    let isSErrors = false
 
-    if (isValidation) {
-      formErrors.current.err = { code: 'RESET_AND_UPDATE' }
+    if (_validation) {
+      formErrors.current.err = { code: resetAndUpdateSymbol }
 
       isErrors = resolver(
         _validation,
@@ -163,110 +124,68 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
       )
 
       if (!isErrors && prevErrors.current) {
-        formErrors.current.err = { code: 'RESET_AND_UPDATE' }
+        formErrors.current.err = { code: resetAndUpdateSymbol }
       }
-
-      formErrors.current.err = { code: 'A' }
 
       prevErrors.current = isErrors
     }
 
-    if (isSValidation) {
-      formSErrors.current.err = { code: 'RESET_AND_UPDATE' }
-
-      isSErrors = resolver(
-        _sideValidation.validation,
-        getAllSideValue(),
-        formSErrors.current,
-        undefined
-      )
-
-      if (!isSErrors && prevSErrors.current) {
-        formSErrors.current.err = { code: 'RESET_AND_UPDATE' }
-      }
-
-      prevSErrors.current = isSErrors
-    }
-    return !isSErrors && !isErrors
+    return !isErrors
   }
 
   // @ts-expect-error
-  const watch: Watch<DeepPartial<T>, DeepPartial<S>> = (path, opts = {}) => {
-    const { side = false, defaultValue } = opts
-    const object = side ? formSValue.current.value : formValue.current.value
-
+  const watch: Watch<T> = (path, opts) => {
     return watcher({
       // @ts-expect-error
       path,
-      object,
+      object: formValue.current.value,
       updateStore: updateStore.current,
       watchStore: watchStore.current,
-      defaultValue,
+      defaultValue: opts?.defaultValue,
     })
   }
 
   const errors = (path: string) => {
     return error(formErrors.current, path)
   }
-  const sideErrors = (path: string) => {
-    return error(formSErrors.current, path)
-  }
 
   const setFormValue = (
-    entry?: RefElValue,
-    name?: string,
-    prox?: any,
-    side?: boolean
+    entry: RefElValue | undefined,
+    name: string,
+    prox: any
   ) => {
-    if (
-      entry === undefined ||
-      !entry.el ||
-      name === undefined ||
-      prox === undefined
-    ) {
+    if (!entry) {
       return
     }
 
-    const valueType = side ? entry.sideValueType : entry.valueType
+    const { elements, type, valueAs } = entry
 
-    if (entry.type === 'checkbox') {
-      if (valueType === Boolean) {
-        if (entry.el?.values().next().value?.value) {
-          set(prox, name, entry.el?.values().next().value?.value?.checked)
-        }
-      }
-      let value: any[] = []
-      for (const v of entry.el.values()) {
-        if (v?.value.checked) {
-          value.push(valueType(v.value.value))
+    let value: any[] = []
+
+    for (const element of elements.values() as IterableIterator<HTMLInputElement>) {
+      if (type === 'checkbox') {
+        if (element?.checked) {
+          value.push(valueAs(element.value))
         } else {
-          value = value?.filter((v) => v !== valueType(v?.value?.value))
+          value = value?.filter((v) => v !== valueAs(element?.value))
         }
+        continue
       }
-      set(prox, name, value)
-      return
-    }
 
-    if (entry.type === 'radio') {
-      for (const el of entry.el.values()) {
-        if (el?.value?.checked) {
-          set(
-            prox,
-            name,
-            side
-              ? el.sideValueType(el?.value?.value)
-              : el.valueType(el?.value?.value)
-          )
-        }
+      if (entry.type === 'radio' && element.checked) {
+        set(prox, name, valueAs(element.value))
+        return
+      }
+
+      if (element?.value === undefined) {
+        set(prox, name, undefined)
+      } else {
+        set(prox, name, valueAs(element?.value))
       }
       return
     }
 
-    if (entry.el?.value === undefined) {
-      set(prox, name, undefined)
-    } else {
-      set(prox, name, valueType(entry.el?.value))
-    }
+    set(prox, name, value)
   }
 
   const handleSubmit: HandleSubmit<T> = (callback) => (e) => {
@@ -274,19 +193,10 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
     e?.stopPropagation()
 
     for (const entry of refEl.current) {
-      if (_autoUnregister && !entry[1].el) {
+      if (_autoUnregister && !entry[1]) {
         unset(formValue.current.value, entry[0])
-        unset(formSValue.current.value, entry[1].sideValueName)
       } else {
-        setFormValue(
-          entry[1],
-          entry[1].sideValueName,
-          formSValue.current.value,
-          true
-        )
-        if (!entry[1].registerSideOnly) {
-          setFormValue(entry[1], entry[0], formValue.current.value)
-        }
+        setFormValue(entry[1], entry[0], formValue.current.value)
       }
     }
 
@@ -313,185 +223,66 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
     }
   }
 
-  const valueDate = (value: string) => new Date(value).toISOString()
-
-  const defineType = (_type: any, _valueAs: any) => {
-    if (_valueAs instanceof Function) {
-      return _valueAs
-    }
-
-    switch (_type) {
-      case 'date':
-        return valueDate
-      case 'number':
-        return Number
-    }
-
-    switch (_valueAs) {
-      case 'string':
-        return String
-      case 'boolean':
-        return Boolean
-      case 'number':
-        return Number
-      case 'date':
-        return valueDate
-    }
-  }
-
-  const register: UseFormRegister<T> = (_name, _options = {}) => {
-    const {
-      type: _type = 'text',
-      onChange: _onChange,
-      valueAs: _valueAs = 'string',
-      sideValueAs: _sideValueAs = 'string',
-      defaultValue: _defaultValue,
-      sideValueName: _sideValueName,
-      defaultChecked: _defaultChecked,
-      registerSideOnly: _registerSideOnly = false,
-      value: _value,
+  const register: UseFormRegister<T> = (name, _options = {}) => {
+    let {
+      type = 'text',
+      onChange,
+      valueAs = String,
+      defaultValue,
+      defaultChecked,
+      value,
     } = _options
-    const valueType = defineType(_type, _valueAs)
-    const sideValueType = defineType(_type, _sideValueAs)
-
-    let defaultChecked = _defaultChecked
-    let defaultValue = _defaultValue
-
-    let value
 
     if (_autoUnregister) {
-      value = get(_defaultFormValue, _name) ?? _value
+      value = get(_defaultFormValue, name) ?? value
     } else {
-      value = getValue(_name)
+      value = getValue(name)
     }
 
-    switch (true) {
-      case _type === 'radio' && _valueAs === 'boolean':
-        defaultChecked = !!_value === !!value
-        break
-      case (_type === 'date' || _type === 'datetime-local') &&
-        isStringDate(value):
-        defaultValue = new Date(value)
-          .toISOString()
-          .slice(0, _type === 'date' ? 10 : -1)
-        break
-      case _type !== 'checkbox' && _type !== 'radio':
+    if (valueAs instanceof Boolean) {
+      if (type === 'radio') {
+        defaultChecked = !!value === !!value
+      } else if (type === 'checkbox') {
         defaultValue = value
-        break
-    }
-
-    const props: any = {
-      type: _type,
-      name: _name,
-    }
-
-    switch (true) {
-      case _value !== undefined:
-        props.value = _value
-      case defaultChecked !== undefined:
-        props.defaultChecked = defaultChecked
-      case defaultValue !== undefined:
-        props.defaultValue = defaultValue
+      }
     }
 
     return {
-      ...props,
+      ...{
+        type,
+        name,
+        defaultChecked,
+        value,
+        defaultValue,
+      },
       onChange: (event: eventEl) => {
-        if (!_registerSideOnly) {
-          setFormValue(refEl.current.get(_name), _name, formValue.current.value)
+        setFormValue(refEl.current.get(name), name, formValue.current.value)
+
+        if (_validation && formErrors.current?.[name] !== undefined) {
+          validate(name)
         }
 
-        setFormValue(
-          refEl.current.get(_name),
-          _sideValueName,
-          formSValue.current.value,
-          true
-        )
-
-        if (_validation && formErrors.current?.[_name] !== undefined) {
-          validate(_name, false)
-        }
-
-        if (
-          _sideValueName &&
-          _sideValidation &&
-          formSErrors.current?.[_sideValueName] !== undefined
-        ) {
-          validate(_sideValueName, true)
-        }
-
-        const watchValue = watchStore.current.has(_name)
+        const watchValue = watchStore.current.has(name)
 
         if (watchValue) {
-          updateStore.current[_name] = { code: 'UPDATE' }
+          updateStore.current[name] = { code: updateSymbol }
         }
-        _onChange?.(event)
+
+        onChange?.(event)
       },
-      ref: (el: El) => {
-        if (_type === 'checkbox' || _type === 'radio') {
-          const element = el as HTMLInputElement
-          const id = element?.id
+      ref: (element: Element) => {
+        const refElValue = refEl.current.get(name)
 
-          const refElValue = refEl.current.get(_name)?.el as any
-
-          if (!id) {
-            refEl.current?.set(_name, {
-              el: null,
-              defaultValue,
-              valueType,
-              sideValueType,
-              type: _type,
-              sideValueName: _sideValueName,
-              registerSideOnly: _registerSideOnly,
-            })
-            return
-          }
-
-          if (refElValue) {
-            refElValue.set(id, {
-              value: element,
-              valueType,
-              sideValueType,
-            })
-          } else {
-            refEl.current.set(_name, {
-              el: new Map([
-                [
-                  id,
-                  {
-                    value: element,
-                    valueType,
-                    sideValueType,
-                  },
-                ],
-              ]),
-              defaultValue,
-              valueType,
-              sideValueType,
-              type: _type,
-              sideValueName: _sideValueName,
-              registerSideOnly: _registerSideOnly,
-            })
-          }
-        } else {
-          refEl.current.set(_name, {
-            el,
+        if (!refElValue) {
+          refEl.current?.set(name, {
+            elements: new Set([element]),
             defaultValue,
-            valueType,
-            sideValueType,
-            type: _type,
-            sideValueName: _sideValueName,
-            registerSideOnly: _registerSideOnly,
+            valueAs,
+            type,
           })
-        }
-
-        const v = refEl.current.get(_name)
-
-        if (!_registerSideOnly) {
-          setFormValue(v, _name, formValue.current.value)
-        }
-        if (_sideValueName) {
-          setFormValue(v, _sideValueName, formSValue.current.value, true)
+          return
+        } else if (!refElValue.elements.has(element)) {
+          refElValue.elements.add(element)
         }
       },
     }
@@ -502,14 +293,10 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
     reset,
     watch,
     errors,
-    sideErrors,
     handleSubmit,
     setValue,
     getValue,
-    setSideValue,
-    getSideValue,
     getAllValue,
-    getAllSideValue,
     setDefaultValue,
   }
 }

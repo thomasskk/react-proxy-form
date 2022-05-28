@@ -1,37 +1,39 @@
-export type UpdateProxyCode =
-  | { code: 'SET'; update: () => void }
-  | { code: 'DELETE' }
-  | { code: 'UPDATE_ALL' }
-  | { code: 'RESET' }
-  | { code: 'UPDATE' }
+import {
+  deleteSymbol,
+  ProxyCode,
+  resetSymbol,
+  setSymbol,
+  updateAllSymbol,
+  updateSymbol,
+} from './proxySymbol.js'
 
 export const updateProxy = () =>
   new Proxy(
     {
-      store: new Map<string | symbol, () => void>(),
+      s: new Map<string | symbol, () => void>(),
     },
     {
-      set: (target, property, value: UpdateProxyCode, receiver) => {
+      set: (target, property, value: ProxyCode, receiver) => {
         switch (value.code) {
-          case 'SET':
-            target.store.set(property, value.update)
-            Reflect.set(target, 'store', target.store, receiver)
+          case setSymbol:
+            target.s.set(property, value.cb)
+            Reflect.set(target, 's', target.s, receiver)
             break
-          case 'UPDATE':
-            target.store.get(property)?.()
+          case updateSymbol:
+            target.s.get(property)?.()
             break
-          case 'DELETE':
+          case deleteSymbol:
             if (property !== undefined) {
-              target.store.delete(property)
+              target.s.delete(property)
             }
             break
-          case 'UPDATE_ALL':
-            for (const [, v] of target.store) {
+          case updateAllSymbol:
+            for (const [, v] of target.s) {
               v()
             }
             break
-          case 'RESET':
-            Reflect.set(target, 'store', new Map(), receiver)
+          case resetSymbol:
+            Reflect.set(target, 's', new Map(), receiver)
             break
           default:
             return Reflect.set(target, property, value, receiver)

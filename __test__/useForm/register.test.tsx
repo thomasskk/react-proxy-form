@@ -58,7 +58,7 @@ describe('useForm', () => {
       ).toEqual(false)
     })
 
-    test.only('should set an array of value when type is radio', async () => {
+    test('should set an array of value when type is radio', async () => {
       const { result } = renderHook(() => useForm())
 
       //!

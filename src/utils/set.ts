@@ -1,6 +1,6 @@
-import { isProxy } from './valueProxy'
-import { dotPathReader } from './dotPathReader'
-import { isObject } from './isHelper'
+import { dotPathReader } from './dotPathReader.js'
+import { isObject } from './isHelper.js'
+import { isProxy } from './proxySymbol.js'
 
 export const set = (
   object: Record<string, any>,

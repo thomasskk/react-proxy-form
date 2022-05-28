@@ -1,74 +1,78 @@
 import { test, describe, expect, vi } from 'vitest'
+import { errorProxy, iM, mM } from '../../src/utils/errorProxy'
 import {
-  errorProxy,
-  ErrorProxyCode as EPC,
-  initStore,
-  mssgStore,
-} from '../../src/utils/errorProxy'
+  deleteSymbol,
+  resetSymbol,
+  setSymbol,
+  updateSymbol,
+  ProxyCode as PC,
+  resetAndUpdateSymbol,
+  refreshSymbol,
+} from '../../src/utils/proxySymbol'
 
 describe('errorProxy', () => {
-  test('SET', () => {
+  test('setSymbol', () => {
     const proxy = errorProxy()
     const cb = vi.fn()
-    proxy['foo'] = <EPC>{ code: 'SET', cb }
-    expect(proxy[initStore].get('foo')).toEqual(cb)
+    proxy['foo'] = <PC>{ code: setSymbol, cb }
+    expect(proxy[iM].get('foo')).toEqual(cb)
   })
-  test('UPDATE', () => {
+  test('updateSymbol', () => {
     const proxy = errorProxy()
     const cb = vi.fn()
-    proxy['foo'] = <EPC>{ code: 'SET', cb }
-    proxy['foo'] = <EPC>{
-      code: 'UPDATE',
+    proxy['foo'] = <PC>{ code: setSymbol, cb }
+    proxy['foo'] = <PC>{
+      code: updateSymbol,
       value: 'bar',
     }
     expect(cb).toHaveBeenCalledOnce()
-    expect(proxy[mssgStore].get('foo')).toEqual('bar')
+    expect(proxy[mM].get('foo')).toEqual('bar')
   })
-  test('REFRESH', () => {
+  test('refreshSymbol', () => {
     const proxy = errorProxy()
     const cb = vi.fn()
-    proxy['foo'] = <EPC>{ code: 'SET', cb }
-    proxy['foo'] = <EPC>{
-      code: 'UPDATE',
+    proxy['foo'] = <PC>{ code: setSymbol, cb }
+    proxy['foo'] = <PC>{
+      code: updateSymbol,
       value: 'bar',
     }
-    proxy['foo'] = <EPC>{ code: 'REFRESH' }
-    expect(proxy[mssgStore].get('foo')).toBeUndefined()
+    proxy['foo'] = <PC>{ code: refreshSymbol }
+    expect(proxy[mM].get('foo')).toBeUndefined()
     expect(cb).toHaveBeenCalledTimes(2)
   })
-  test('RESET', () => {
+  test('resetSymbol', () => {
     const proxy = errorProxy()
     const cb = vi.fn()
-    proxy['foo'] = <EPC>{ code: 'SET', cb }
-    proxy['foo'] = <EPC>{
-      code: 'UPDATE',
+    proxy['foo'] = <PC>{ code: setSymbol, cb }
+    proxy['foo'] = <PC>{
+      code: updateSymbol,
       value: 'bar',
     }
-    proxy['foo'] = <EPC>{ code: 'RESET' }
-    expect(proxy[mssgStore].size).toEqual(0)
+    proxy['foo'] = <PC>{ code: resetSymbol }
+    expect(proxy[mM].size).toEqual(0)
   })
-  test('DELETE', () => {
+  test('deleteSymbol', () => {
     const proxy = errorProxy()
     const cb = vi.fn()
-    proxy['foo'] = <EPC>{ code: 'SET', cb }
-    proxy['foo'] = <EPC>{
-      code: 'UPDATE',
+    proxy['foo'] = <PC>{ code: setSymbol, cb }
+    proxy['foo'] = <PC>{
+      code: updateSymbol,
       value: 'bar',
     }
-    proxy['foo'] = <EPC>{ code: 'DELETE' }
-    expect(proxy[mssgStore].get('foo')).toBeUndefined()
-    expect(proxy[initStore].get('foo')).toBeUndefined()
+    proxy['foo'] = <PC>{ code: deleteSymbol }
+    expect(proxy[mM].get('foo')).toBeUndefined()
+    expect(proxy[iM].get('foo')).toBeUndefined()
   })
-  test('RESET_AND_UPDATE', () => {
+  test('resetAndUpdateSymbol', () => {
     const proxy = errorProxy()
     const cb = vi.fn()
-    proxy['foo'] = <EPC>{ code: 'SET', cb }
-    proxy['foo'] = <EPC>{
-      code: 'UPDATE',
+    proxy['foo'] = <PC>{ code: setSymbol, cb }
+    proxy['foo'] = <PC>{
+      code: updateSymbol,
       value: 'bar',
     }
-    proxy[''] = <EPC>{ code: 'RESET_AND_UPDATE', value: '' }
-    expect(proxy[mssgStore].size).toEqual(0)
+    proxy[''] = <PC>{ code: resetAndUpdateSymbol, value: '' }
+    expect(proxy[mM].size).toEqual(0)
     expect(cb).toHaveBeenCalledTimes(2)
   })
 })

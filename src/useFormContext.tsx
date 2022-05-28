@@ -1,18 +1,16 @@
-import * as React from 'react'
-import { UseFormReturn } from './types'
+import React, { createContext, useContext } from 'react'
+import type { ObjType, UseFormReturn } from './types/index.js'
 
-const HookFormContext = React.createContext<UseFormReturn<
-  Record<string, any>
-> | null>(null)
+const HookFormContext = createContext<UseFormReturn<ObjType> | null>(null)
 
-export const useFormContext = <T,>() =>
-  React.useContext(HookFormContext) as unknown as UseFormReturn<T>
+export const useFormContext = <T extends ObjType>() =>
+  useContext(HookFormContext) as unknown as UseFormReturn<T>
 
-type Props<T> = {
+type Props<T extends ObjType> = {
   children: React.ReactNode
 } & UseFormReturn<T>
 
-export const FormProvider = <T,>(props: Props<T>) => {
+export const FormProvider = <T extends ObjType>(props: Props<T>) => {
   const { children, ...rest } = props
   return (
     <HookFormContext.Provider value={rest as any}>

@@ -1,6 +1,5 @@
-import { ObjectType } from '@badrap/valita'
 import { ChangeEvent } from 'react'
-import { DeepPartial, Path, PropertyType } from './utils'
+import { DeepPartial, Path, PropertyType } from './utils.js'
 
 export type Primitive =
   | boolean
@@ -21,35 +20,22 @@ type BaseObjType<T> = Record<
 export type ArrayType = (ObjType | Primitive)[]
 export interface ObjType extends BaseObjType<ObjType> {}
 
-export type El =
-  | HTMLInputElement
-  | HTMLTextAreaElement
-  | HTMLSelectElement
-  | null
-
 export type eventEl =
   | ChangeEvent<HTMLInputElement>
   | ChangeEvent<HTMLTextAreaElement>
   | ChangeEvent<HTMLSelectElement>
   | ChangeEvent<null>
 
-type useFormBaseProps<T extends ObjType, S extends ObjType = never> = {
+type useFormBaseProps<T extends ObjType> = {
   defaultValue?: DeepPartial<T>
-  sideValidation?: {
-    defaultValue?: DeepPartial<S>
-    validation: any
-  }
   setAfterSubmit?: Record<string, unknown>
   autoUnregister?: boolean
   resetOnSubmit?: boolean
   setBeforeSubmit?: Record<string, unknown>
 }
 
-export type UseFormProps<
-  T extends ObjType,
-  S extends ObjType = never
-> = useFormBaseProps<T, S> & {
-  validation?: ObjectType
+export type UseFormProps<T extends ObjType> = useFormBaseProps<T> & {
+  validation?: any
 }
 
 export type SetValue<T> = <P extends Path<T>>(
@@ -60,62 +46,39 @@ export type GetValue<T> = <P extends Path<T>>(path: P) => PropertyType<T, P>
 export type SetDefaultValue<T> = (value: DeepPartial<T>) => void
 export type Errors<T> = (path: Path<T>) => any
 
-export type Watch<T extends ObjType, S extends ObjType> = <
-  P extends Path<K>,
-  B extends boolean = false,
-  K = B extends true ? S : T
->(
+export type Watch<T extends ObjType> = <P extends Path<T>>(
   path: P,
-  opts?: { side?: B; defaultValue: PropertyType<K, P> }
-) => PropertyType<K, P>
+  opts?: { defaultValue: PropertyType<T, P> }
+) => PropertyType<T, P>
 
-export type UseFormReturn<T extends ObjType, S extends ObjType = never> = {
+export type UseFormReturn<T extends ObjType> = {
   register: UseFormRegister<T>
   reset: () => void
   errors: Errors<T>
-  sideErrors: Errors<T>
   handleSubmit: HandleSubmit<T>
   getValue: GetValue<T>
   setValue: SetValue<T>
-  setSideValue: SetValue<S>
-  getSideValue: GetValue<S>
   getAllValue: () => T
-  getAllSideValue: () => S
   setDefaultValue: SetDefaultValue<T>
-  watch: Watch<T, S>
+  watch: Watch<T>
 }
 
-export type DefaultValue = string | number | Date | null | undefined
-export type ValueAs =
-  | 'string'
-  | 'number'
-  | 'boolean'
-  | 'date'
-  | undefined
-  | (() => void)
+export type DefaultValue = string | number | undefined
 
-export type InputType =
-  | 'checkbox'
-  | 'radio'
-  | 'select'
-  | 'text'
-  | 'textarea'
-  | 'date'
-  | 'datetime-local'
-  | 'password'
-  | 'number'
+export type ValueAs =
+  | StringConstructor
+  | NumberConstructor
+  | BooleanConstructor
+  | ((value: unknown) => unknown)
+  | (() => void)
 
 export type UseFormRegisterOptions = {
   type?: InputType
   defaultValue?: DefaultValue
   valueAs?: ValueAs
-  sideValueAs?: ValueAs
   onChange?: (event: eventEl) => void
   defaultChecked?: boolean
-  sideValueName?: string
-  transformSideValue?: (value: any, el?: any) => any
   transformValue?: (value: any, el?: any) => any
-  registerSideOnly?: boolean
   value?: any
 }
 
@@ -126,9 +89,9 @@ export type UseFormRegister<T> = (
 
 export type UseFormRegisterReturn = {
   onChange: (event: eventEl) => void
-  ref: (el: El) => void
+  ref: (el: Element) => void
   name: string
-  defaultValue: string | number | undefined
+  defaultValue?: DefaultValue
   type: InputType
   defaultChecked?: boolean
   value: any
@@ -140,45 +103,26 @@ export type HandleSubmit<T> = (
   cb: (data: T) => void
 ) => (event?: React.BaseSyntheticEvent) => void
 
-export type ValueType =
-  | StringConstructor
-  | NumberConstructor
-  | BooleanConstructor
-  | ((value: string) => string | undefined)
-  | (() => void)
+export type InputType =
+  | 'checkbox'
+  | 'radio'
+  | 'text'
+  | 'date'
+  | 'datetime-local'
+  | 'password'
+  | 'number'
+  | 'textarea'
+  | 'select'
 
-type BaseRefElValue = {
-  registerSideOnly?: boolean
-  sideValueName?: string
+export type Element =
+  | HTMLInputElement
+  | HTMLTextAreaElement
+  | HTMLSelectElement
+  | null
+
+export type RefElValue = {
   defaultValue: any
-  valueType: ValueType
-  sideValueType: ValueType
+  valueAs: ValueAs
+  elements: Set<Element>
+  type: InputType
 }
-
-export type RefElValue = BaseRefElValue &
-  (
-    | {
-        el:
-          | {
-              name: string
-              value: HTMLInputElement
-              valueType: ValueType
-              sideValueType: ValueType
-            }[]
-          | null
-        type: 'checkbox' | 'radio'
-      }
-    | {
-        el: El
-        type:
-          | 'select'
-          | 'text'
-          | 'textarea'
-          | 'date'
-          | 'datetime-local'
-          | 'password'
-          | 'number'
-      }
-  )
-
-export type RefEl = React.MutableRefObject<Map<string, RefElValue>>

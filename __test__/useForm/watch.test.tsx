@@ -11,21 +11,11 @@ describe('useForm', () => {
     test('update on type', async () => {
       let watched: number | undefined
       const Component = () => {
-        const { watch, register } = useForm<
-          {
-            a: { b: number }
-          },
-          { a: { b: string } }
-        >()
+        const { watch, register } = useForm<{
+          a: { b: number }
+        }>()
         watched = watch('a.b')
-        return (
-          <input
-            {...register('a.b', {
-              sideValueName: 'b',
-              sideValueAs: 'boolean',
-            })}
-          />
-        )
+        return <input {...register('a.b')} />
       }
       render(<Component />)
       expect(watched).toBeUndefined()

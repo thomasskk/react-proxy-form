@@ -1,12 +1,8 @@
-import { isProxy } from './valueProxy'
-import { dotPathReader } from './dotPathReader'
-import { isObject, isObjWritable } from './isHelper'
+import { dotPathReader } from './dotPathReader.js'
+import { isObject, isObjWritable } from './isHelper.js'
+import { isProxy } from './proxySymbol.js'
 
-export const unset = (object: Record<string, any>, path?: string) => {
-  if (!path) {
-    return
-  }
-
+export const unset = (object: Record<string, any>, path: string) => {
   const arrPath = dotPathReader(path)
   const { length } = arrPath
 

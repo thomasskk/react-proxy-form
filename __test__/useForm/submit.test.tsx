@@ -9,10 +9,7 @@ describe('useForm', () => {
     test('', async () => {
       const { result } = renderHook(() => useForm())
 
-      result.current.register('a.b', {
-        sideValueName: 'b',
-        sideValueAs: 'boolean',
-      })
+      result.current.register('a.b', {})
 
       result.current.setValue('a.b', true)
 

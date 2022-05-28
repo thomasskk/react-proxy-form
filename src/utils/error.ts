@@ -1,12 +1,12 @@
 import { useEffect, useReducer } from 'react'
-import { ErrorProxyCode } from './errorProxy'
+import { deleteSymbol, setSymbol } from './proxySymbol.js'
 
 export const error = (prox: Record<string, any>, name: string) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   useEffect(() => {
-    prox[name] = { code: 'SET', cb: forceUpdate } as ErrorProxyCode
+    prox[name] = { code: setSymbol, cb: forceUpdate }
     return () => {
-      prox[name] = { code: 'DELETE' }
+      prox[name] = { code: deleteSymbol }
     }
   }, [])
   return prox[name]

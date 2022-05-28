@@ -37,7 +37,7 @@ describe('watcher', () => {
         watchStore: new Set(),
       })
     )
-    expect(updateStore.store.get('a.b')).toBeInstanceOf(Function)
+    expect(updateStore.s.get('a.b')).toBeInstanceOf(Function)
   })
   test('rerender when value change', () => {
     const updateStore = updateProxy()
@@ -84,7 +84,7 @@ describe('watcher', () => {
       })
     )
     unmount()
-    expect(updateStore.store.get('a.b')).toBeUndefined()
+    expect(updateStore.s.get('a.b')).toBeUndefined()
     expect(watchStore.has('a.b')).toBeFalsy()
   })
 })

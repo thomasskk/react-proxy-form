@@ -7,7 +7,9 @@
     "strict": true,
     "skipLibCheck": true,
     "jsx": "react",
-    "lib": ["dom", "dom.iterable", "esnext"]
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "declaration": true,
+    "outDir": "dist"
   },
-  "include": ["src", "__test__"]
+  "include": ["src"]
 }

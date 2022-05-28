@@ -1,53 +1,55 @@
-export type ErrorProxyCode =
-  | { code: 'SET'; cb: () => void }
-  | { code: 'UPDATE'; value: string }
-  | { code: 'RESET_AND_UPDATE' }
-  | { code: 'REFRESH' }
-  | { code: 'RESET' }
-  | { code: 'DELETE' }
+import {
+  deleteSymbol,
+  ProxyCode,
+  refreshSymbol,
+  resetAndUpdateSymbol,
+  resetSymbol,
+  setSymbol,
+  updateSymbol,
+} from './proxySymbol.js'
 
-export const initStore = Symbol('initStore')
-export const mssgStore = Symbol('mssgStore')
+export const iM = Symbol('iM')
+export const mM = Symbol('mM')
 
 export const errorProxy = () => {
   return new Proxy(
     {
-      initStore: new Map<string | symbol, () => void>(),
-      mssgStore: new Map<string | symbol, string>(),
+      iM: new Map<string | symbol, () => void>(),
+      mM: new Map<string | symbol, string>(),
     },
     {
-      set: (target, property, value: ErrorProxyCode, receiver) => {
+      set: (target, property, value: ProxyCode, receiver) => {
         switch (value.code) {
-          case 'SET':
-            target.initStore.set(property, value.cb)
-            Reflect.set(target, 'initStore', target.initStore, receiver)
+          case setSymbol:
+            target.iM.set(property, value.cb)
+            Reflect.set(target, 'iM', target.iM, receiver)
             break
-          case 'UPDATE':
-            const UPDATE_cb = target.initStore.get(property)
+          case updateSymbol:
+            const UPDATE_cb = target.iM.get(property)
             if (!UPDATE_cb) {
               break
             }
-            target.mssgStore.set(property, value.value)
-            Reflect.set(target, 'mssgStore', target.mssgStore, receiver)
+            target.mM.set(property, value.value)
+            Reflect.set(target, 'mM', target.mM, receiver)
             UPDATE_cb()
             break
-          case 'REFRESH':
-            target.mssgStore.delete(property)
-            const REFRESH_cb = target.initStore.get(property)
+          case refreshSymbol:
+            target.mM.delete(property)
+            const REFRESH_cb = target.iM.get(property)
             REFRESH_cb?.()
             break
-          case 'RESET':
-            Reflect.set(target, 'mssgStore', new Map(), receiver)
+          case resetSymbol:
+            Reflect.set(target, 'mM', new Map(), receiver)
             break
-          case 'DELETE':
-            target.mssgStore.delete(property)
-            target.initStore.delete(property)
-            Reflect.set(target, 'mssgStore', target.mssgStore, receiver)
-            Reflect.set(target, 'initStore', target.initStore, receiver)
+          case deleteSymbol:
+            target.mM.delete(property)
+            target.iM.delete(property)
+            Reflect.set(target, 'mM', target.mM, receiver)
+            Reflect.set(target, 'iM', target.iM, receiver)
             break
-          case 'RESET_AND_UPDATE':
-            Reflect.set(target, 'mssgStore', new Map(), receiver)
-            for (const [, v] of target.initStore) {
+          case resetAndUpdateSymbol:
+            Reflect.set(target, 'mM', new Map(), receiver)
+            for (const [, v] of target.iM) {
               v()
             }
             break
@@ -58,13 +60,13 @@ export const errorProxy = () => {
         return true
       },
       get: (target, property) => {
-        if (property === initStore) {
-          return target.initStore
+        if (property === iM) {
+          return target.iM
         }
-        if (property === mssgStore) {
-          return target.mssgStore
+        if (property === mM) {
+          return target.mM
         }
-        return target.mssgStore.get(property)
+        return target.mM.get(property)
       },
     }
   ) as any

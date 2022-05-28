@@ -1,7 +1,5 @@
-import { ObjType, ArrayType } from '../types'
-
-export const isProxy = Symbol('__PROXY__')
-export const proxyKeys = Symbol('__KEYS__')
+import type { ObjType, ArrayType } from '../types/index.js'
+import { isProxy, proxyKeys } from './proxySymbol.js'
 
 // trigger cb on set when property is in keys and its value is changed
 export const valueProxy = <

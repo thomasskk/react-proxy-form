@@ -1,11 +1,16 @@
 import { useEffect, useReducer, useRef } from 'react'
-import { ObjType } from '../types'
-import { Path, PropertyType } from '../types/utils'
-import { UpdateProxyCode as UPC } from './updateProxy'
-import { valueProxy, proxyKeys } from './valueProxy'
-import { dotPathReader } from './dotPathReader'
-import { get } from './get'
-import { isObject } from './isHelper'
+import type { ObjType } from '../types/index.js'
+import { Path, PropertyType } from '../types/utils.js'
+import { valueProxy } from './valueProxy.js'
+import { dotPathReader } from './dotPathReader.js'
+import { get } from './get.js'
+import { isObject } from './isHelper.js'
+import {
+  deleteSymbol,
+  ProxyCode as PC,
+  proxyKeys,
+} from '../utils/proxySymbol.js'
+import { setSymbol } from './proxySymbol.js'
 
 export const watcher = <P extends Path<O>, O extends ObjType>(args: {
   object: O
@@ -27,7 +32,7 @@ export const watcher = <P extends Path<O>, O extends ObjType>(args: {
       arrPath.reduce((acc: any, cv, index) => {
         if (index === arrPath.length - 2 || arrPath.length === 1) {
           // keys array to determine which property is watched
-          const keys = (object[proxyKeys as any] as any[]) || []
+          const keys = (object[proxyKeys] as any[]) || []
           keys.push(key.current)
 
           acc[cv] = valueProxy({
@@ -44,13 +49,13 @@ export const watcher = <P extends Path<O>, O extends ObjType>(args: {
 
     if (value.current?.[key.current] === undefined) {
       watchStore.add(path)
-      updateStore[path] = <UPC>{
-        code: 'SET',
-        update: () => {
+      updateStore[path] = <PC>{
+        code: setSymbol,
+        cb: () => {
           setProxyFn()
-          updateStore[path] = <UPC>{
-            code: 'SET',
-            update: () => forceUpdate,
+          updateStore[path] = <PC>{
+            code: setSymbol,
+            cb: () => forceUpdate,
           }
           watchStore.delete(path)
           forceUpdate()
@@ -58,15 +63,15 @@ export const watcher = <P extends Path<O>, O extends ObjType>(args: {
       }
       value.current = undefined
     } else {
-      updateStore[path] = <UPC>{
-        code: 'SET',
-        update: () => forceUpdate,
+      updateStore[path] = <PC>{
+        code: setSymbol,
+        cb: () => forceUpdate,
       }
       setProxyFn()
     }
     return () => {
       watchStore.delete(path)
-      updateStore[path] = <UPC>{ code: 'DELETE' }
+      updateStore[path] = <PC>{ code: deleteSymbol }
     }
   }, [])
 
