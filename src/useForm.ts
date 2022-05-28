@@ -229,58 +229,43 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
 
     const valueType = side ? entry.sideValueType : entry.valueType
 
-    switch (entry.type) {
-      // CHECKBOX
-      case 'checkbox': {
-        if (valueType === Boolean) {
-          if (entry.el?.values().next().value?.value) {
-            set(prox, name, entry.el?.values().next().value?.value?.checked)
-          }
-          break
+    if (entry.type === 'checkbox') {
+      if (valueType === Boolean) {
+        if (entry.el?.values().next().value?.value) {
+          set(prox, name, entry.el?.values().next().value?.value?.checked)
         }
-        let value: any[] = []
-        for (const v of entry.el.values()) {
-          if (v?.value) {
-            if (v.value.checked) {
-              value.push(valueType(v.value.value))
-            } else {
-              value = value.filter((v) => v !== valueType(v?.value?.value))
-            }
-          }
-        }
-        set(prox, name, value)
-        break
       }
-      // RADIO
-      case 'radio':
-        for (const el of entry.el.values()) {
-          if (el?.value?.checked) {
-            set(
-              prox,
-              name,
-              side
-                ? el.sideValueType(el?.value?.value)
-                : el.valueType(el?.value?.value)
-            )
-          }
-        }
-        break
-      // DEFAULT
-      default: {
-        if (entry.el?.value === 'false' && valueType === Boolean) {
-          set(prox, name, false)
+      let value: any[] = []
+      for (const v of entry.el.values()) {
+        if (v?.value.checked) {
+          value.push(valueType(v.value.value))
         } else {
-          if (
-            entry.el?.value === undefined ||
-            entry.el?.value === null ||
-            entry.el?.value === ''
-          ) {
-            set(prox, name, undefined)
-          } else {
-            set(prox, name, valueType(entry.el?.value))
-          }
+          value = value?.filter((v) => v !== valueType(v?.value?.value))
         }
       }
+      set(prox, name, value)
+      return
+    }
+
+    if (entry.type === 'radio') {
+      for (const el of entry.el.values()) {
+        if (el?.value?.checked) {
+          set(
+            prox,
+            name,
+            side
+              ? el.sideValueType(el?.value?.value)
+              : el.valueType(el?.value?.value)
+          )
+        }
+      }
+      return
+    }
+
+    if (entry.el?.value === undefined) {
+      set(prox, name, undefined)
+    } else {
+      set(prox, name, valueType(entry.el?.value))
     }
   }
 
@@ -502,13 +487,11 @@ export function useForm<T extends ObjType, S extends ObjType = never>(
 
         const v = refEl.current.get(_name)
 
-        if (v !== undefined) {
-          if (!_registerSideOnly) {
-            setFormValue(v, _name, formValue.current.value)
-          }
-          if (_sideValueName) {
-            setFormValue(v, _sideValueName, formSValue.current.value, true)
-          }
+        if (!_registerSideOnly) {
+          setFormValue(v, _name, formValue.current.value)
+        }
+        if (_sideValueName) {
+          setFormValue(v, _sideValueName, formSValue.current.value, true)
         }
       },
     }

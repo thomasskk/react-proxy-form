@@ -158,14 +158,14 @@ type BaseRefElValue = {
 export type RefElValue = BaseRefElValue &
   (
     | {
-        el: Map<
-          string,
-          {
-            value: HTMLInputElement
-            valueType: ValueType
-            sideValueType: ValueType
-          } | null
-        > | null
+        el:
+          | {
+              name: string
+              value: HTMLInputElement
+              valueType: ValueType
+              sideValueType: ValueType
+            }[]
+          | null
         type: 'checkbox' | 'radio'
       }
     | {
