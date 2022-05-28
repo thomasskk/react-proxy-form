@@ -15,7 +15,8 @@
   },
   "scripts": {
     "test": "vitest",
-    "build": "yarn rollup --config rollup.config.ts"
+    "build": "yarn rollup --config rollup.config.ts",
+    "release": "yarn build && npm publish"
   },
   "prettier": {
     "arrowParens": "always",
