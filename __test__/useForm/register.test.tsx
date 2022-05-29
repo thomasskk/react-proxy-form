@@ -1,7 +1,7 @@
 ;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
 
 import { describe, test, expect } from 'vitest'
-import { act, render, renderHook, screen } from '@testing-library/react'
+import { render, renderHook, screen } from '@testing-library/react'
 import { useForm } from '../../src/useForm'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
@@ -15,68 +15,66 @@ describe('useForm', () => {
         })
       )
 
-      expect(result.current.register('a.b')).toMatchObject({
-        defaultValue: 1,
-      })
-    })
-    test('return right default value', () => {
-      const { result } = renderHook(() => useForm())
-
-      const { ref, name, value, type, onChange, defaultValue, defaultChecked } =
-        result.current.register(undefined as any)
-
-      expect(onChange).toBeInstanceOf(Function)
-
-      expect(ref).toBeInstanceOf(Function)
-
-      expect(name).toBeUndefined()
-
-      expect(type).toEqual('text')
-
-      expect(defaultValue).toBeUndefined()
-
-      expect(defaultChecked).toBeUndefined()
-
-      expect(value).toBeUndefined()
+      expect(result.current.register('a.b').defaultValue).toEqual(1)
     })
 
-    test('return defaultChecked as defaultValue for radio', () => {
-      const { result } = renderHook(() => useForm())
+    test('register defaultValue should override global defaultValue', () => {
+      const { result } = renderHook(() =>
+        useForm({
+          defaultValue: { a: { b: 1 } },
+        })
+      )
 
       expect(
         result.current.register('a.b', {
-          type: 'radio',
-          defaultChecked: true,
-        }).defaultChecked
-      ).toEqual(true)
-
-      expect(
-        result.current.register('a.b', {
-          type: 'radio',
-          defaultChecked: false,
-        }).defaultChecked
-      ).toEqual(false)
+          defaultValue: 2,
+        }).defaultValue
+      ).toEqual(2)
     })
 
-    test('should set an array of value when type is radio', async () => {
-      const { result } = renderHook(() => useForm())
+    test('should set an array of value when type is checkbox', async () => {
+      let methods: any
 
-      //!
-      // fix set default value from register -> defaultValue and defaultChecked
-      //!
-      result.current.register('a.b', {
-        type: 'radio',
-        value: 1,
-        defaultChecked: true,
-      })
+      const Component = () => {
+        methods = useForm()
 
-      result.current.register('a.b', {
-        type: 'radio',
-        value: 2,
-        defaultChecked: true,
-      })
+        return (
+          <>
+            <input
+              {...methods.register('a.b', {
+                type: 'checkbox',
+                value: 1,
+                defaultChecked: true,
+                valueAs: Number,
+              })}
+            />
+            <input
+              {...methods.register('a.b', {
+                type: 'checkbox',
+                value: 2,
+                defaultChecked: true,
+                valueAs: Number,
+              })}
+            />
+          </>
+        )
+      }
 
-      expect(result.current.getAllValue()).toEqual({ a: [1, 2] })
+      render(<Component />)
+
+      expect(methods.getAllValue()).toEqual({ a: { b: [1, 2] } })
+
+      await userEvent.click(screen.getAllByRole('checkbox')[0])
+
+      expect(methods.getAllValue()).toEqual({ a: { b: [2] } })
+
+      await userEvent.click(screen.getAllByRole('checkbox')[1])
+
+      expect(methods.getAllValue()).toEqual({ a: { b: [] } })
+
+      await userEvent.click(screen.getAllByRole('checkbox')[0])
+
+      expect(methods.getAllValue()).toEqual({ a: { b: [1] } })
     })
 
     test('should set prev value on remount when autoRegister=true', () => {
@@ -90,6 +88,7 @@ describe('useForm', () => {
       result.current.register('a')
 
       result.current.setValue('a', 2)
+
       result.current.register('a')
 
       unmount()

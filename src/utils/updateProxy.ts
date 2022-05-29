@@ -13,11 +13,10 @@ export const updateProxy = () =>
       s: new Map<string | symbol, () => void>(),
     },
     {
-      set: (target, property, value: ProxyCode, receiver) => {
+      set: (target: any, property, value: ProxyCode) => {
         switch (value.code) {
           case setSymbol:
             target.s.set(property, value.cb)
-            Reflect.set(target, 's', target.s, receiver)
             break
           case updateSymbol:
             target.s.get(property)?.()
@@ -33,10 +32,11 @@ export const updateProxy = () =>
             }
             break
           case resetSymbol:
-            Reflect.set(target, 's', new Map(), receiver)
+            target.s = new Map()
             break
           default:
-            return Reflect.set(target, property, value, receiver)
+            target[property] = value
+            return true
         }
 
         return true

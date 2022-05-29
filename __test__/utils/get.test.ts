@@ -1,7 +1,7 @@
 import { test, describe, expect } from 'vitest'
 import { get } from '../../src/utils/get'
 
-describe('set', () => {
+describe('get', () => {
   test('get the correct value', () => {
     const t1 = {
       a: [0, 1],

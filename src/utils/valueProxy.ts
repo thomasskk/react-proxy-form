@@ -12,20 +12,21 @@ export const valueProxy = <
 }) => {
   const { value: proxyValue, cb, keys } = args
   return new Proxy(proxyValue, {
-    set: (target, property, value, receiver) => {
+    set: (target, property: any, value) => {
       // if key is not in keys => normal behavior
 
       if (!keys.includes(property)) {
-        return Reflect.set(target, property, value, receiver)
+        return (target[property] = value)
       }
 
       // if the previous value is undefined and the new one too => delete
-      const prevValue = Reflect.get(target, property, receiver)
+      const prevValue = target[property]
+
       if (value === undefined && prevValue === undefined) {
         if (Array.isArray(target)) {
           target.splice(Number(property), 1)
         } else {
-          Reflect.deleteProperty(target, property)
+          delete target[property]
         }
         return true
       }
@@ -37,11 +38,11 @@ export const valueProxy = <
         return true
       }
 
-      Reflect.set(target, property, value, receiver)
+      target[property] = value
       cb()
       return true
     },
-    get: (target, p, receiver) => {
+    get: (target, p) => {
       if (p === isProxy) {
         return true
       }
@@ -49,7 +50,7 @@ export const valueProxy = <
         return keys
       }
 
-      return Reflect.get(target, p, receiver)
+      return target[p as any]
     },
   })
 }

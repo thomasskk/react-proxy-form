@@ -7,48 +7,26 @@ import { renderHookWithCount } from '../helper'
 describe('watcher', () => {
   test('value doesnt exist', () => {
     const { result } = renderHook(() =>
-      watcher({
-        object: { a: {} } as any,
-        path: 'a.b',
-        updateStore: updateProxy(),
-        watchStore: new Set(),
-      })
+      watcher({ a: {} } as any, 'a.b', updateProxy(), new Set())
     )
     expect(result.current).toBeUndefined()
   })
   test('return right value on init', () => {
     const { result } = renderHook(() =>
-      watcher({
-        object: { a: { b: 1 } },
-        path: 'a.b',
-        updateStore: updateProxy(),
-        watchStore: new Set(),
-      })
+      watcher({ a: { b: 1 } }, 'a.b', updateProxy(), new Set())
     )
     expect(result.current).toBe(1)
   })
   test('should set cb in updateStore', () => {
     const updateStore = updateProxy()
-    renderHook(() =>
-      watcher({
-        object: { a: { b: 1 } },
-        path: 'a.b',
-        updateStore,
-        watchStore: new Set(),
-      })
-    )
+    renderHook(() => watcher({ a: { b: 1 } }, 'a.b', updateStore, new Set()))
     expect(updateStore.s.get('a.b')).toBeInstanceOf(Function)
   })
   test('rerender when value change', () => {
     const updateStore = updateProxy()
     const object = { a: { b: 1 } }
     const { renderCount } = renderHookWithCount(() =>
-      watcher({
-        object,
-        path: 'a.b',
-        updateStore,
-        watchStore: new Set(),
-      })
+      watcher(object, 'a.b', updateStore, new Set())
     )
     expect(renderCount()).toBe(1)
     act(() => {
@@ -60,12 +38,7 @@ describe('watcher', () => {
     const updateStore = updateProxy()
     const object = { a: { b: 1 } }
     const { result } = renderHookWithCount(() =>
-      watcher({
-        object,
-        path: 'a.b',
-        updateStore,
-        watchStore: new Set(),
-      })
+      watcher(object, 'a.b', updateStore, new Set())
     )
     act(() => {
       object.a.b = 2
@@ -76,12 +49,7 @@ describe('watcher', () => {
     const updateStore = updateProxy()
     const watchStore = new Set('a.b')
     const { unmount } = renderHook(() =>
-      watcher({
-        object: { a: { b: 1 } },
-        path: 'a.b',
-        updateStore,
-        watchStore: new Set(),
-      })
+      watcher({ a: { b: 1 } }, 'a.b', updateStore, new Set())
     )
     unmount()
     expect(updateStore.s.get('a.b')).toBeUndefined()

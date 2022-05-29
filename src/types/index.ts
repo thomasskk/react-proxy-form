@@ -26,16 +26,11 @@ export type eventEl =
   | ChangeEvent<HTMLSelectElement>
   | ChangeEvent<null>
 
-type useFormBaseProps<T extends ObjType> = {
+export type UseFormProps<T extends ObjType> = {
   defaultValue?: DeepPartial<T>
-  setAfterSubmit?: Record<string, unknown>
   autoUnregister?: boolean
   resetOnSubmit?: boolean
-  setBeforeSubmit?: Record<string, unknown>
-}
-
-export type UseFormProps<T extends ObjType> = useFormBaseProps<T> & {
-  validation?: any
+  isValidation?: boolean
 }
 
 export type SetValue<T> = <P extends Path<T>>(
@@ -44,7 +39,9 @@ export type SetValue<T> = <P extends Path<T>>(
 ) => void
 export type GetValue<T> = <P extends Path<T>>(path: P) => PropertyType<T, P>
 export type SetDefaultValue<T> = (value: DeepPartial<T>) => void
-export type Errors<T> = (path: Path<T>) => any
+
+export type Error<T> = (path: Path<T>) => string[] | undefined
+export type Errors<T> = () => T
 
 export type Watch<T extends ObjType> = <P extends Path<T>>(
   path: P,
@@ -54,6 +51,7 @@ export type Watch<T extends ObjType> = <P extends Path<T>>(
 export type UseFormReturn<T extends ObjType> = {
   register: UseFormRegister<T>
   reset: () => void
+  error: Error<T>
   errors: Errors<T>
   handleSubmit: HandleSubmit<T>
   getValue: GetValue<T>
@@ -72,7 +70,12 @@ export type ValueAs =
   | ((value: unknown) => unknown)
   | (() => void)
 
-export type UseFormRegisterOptions = {
+type Validation<T, P extends Path<T>> = {
+  fn: (v: PropertyType<T, P>) => boolean
+  message?: string
+}[]
+
+export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
   defaultValue?: DefaultValue
   valueAs?: ValueAs
@@ -80,11 +83,12 @@ export type UseFormRegisterOptions = {
   defaultChecked?: boolean
   transformValue?: (value: any, el?: any) => any
   value?: any
+  validation?: Validation<T, P>
 }
 
-export type UseFormRegister<T> = (
-  _name: Path<T>,
-  _options?: UseFormRegisterOptions
+export type UseFormRegister<T> = <P extends Path<T>>(
+  _name: P,
+  _options?: UseFormRegisterOptions<T, P>
 ) => UseFormRegisterReturn
 
 export type UseFormRegisterReturn = {
@@ -100,7 +104,7 @@ export type UseFormRegisterReturn = {
 export type SubmitHandler<T> = (data: T) => void
 
 export type HandleSubmit<T> = (
-  cb: (data: T) => void
+  cb?: (data: T, e?: React.BaseSyntheticEvent) => void
 ) => (event?: React.BaseSyntheticEvent) => void
 
 export type InputType =
@@ -125,4 +129,5 @@ export type RefElValue = {
   valueAs: ValueAs
   elements: Set<Element>
   type: InputType
+  validation?: Validation<any, any>
 }

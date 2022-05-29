@@ -15,14 +15,14 @@ export const errorProxy = () => {
   return new Proxy(
     {
       iM: new Map<string | symbol, () => void>(),
-      mM: new Map<string | symbol, string>(),
+      mM: new Map<string | symbol, string[]>(),
+      gM: new Map<string | symbol, string[]>(),
     },
     {
-      set: (target, property, value: ProxyCode, receiver) => {
+      set: (target: any, property, value: ProxyCode) => {
         switch (value.code) {
           case setSymbol:
             target.iM.set(property, value.cb)
-            Reflect.set(target, 'iM', target.iM, receiver)
             break
           case updateSymbol:
             const UPDATE_cb = target.iM.get(property)
@@ -30,7 +30,6 @@ export const errorProxy = () => {
               break
             }
             target.mM.set(property, value.value)
-            Reflect.set(target, 'mM', target.mM, receiver)
             UPDATE_cb()
             break
           case refreshSymbol:
@@ -39,22 +38,21 @@ export const errorProxy = () => {
             REFRESH_cb?.()
             break
           case resetSymbol:
-            Reflect.set(target, 'mM', new Map(), receiver)
+            target.mM = new Map()
             break
           case deleteSymbol:
             target.mM.delete(property)
             target.iM.delete(property)
-            Reflect.set(target, 'mM', target.mM, receiver)
-            Reflect.set(target, 'iM', target.iM, receiver)
             break
           case resetAndUpdateSymbol:
-            Reflect.set(target, 'mM', new Map(), receiver)
+            target.mM = new Map()
             for (const [, v] of target.iM) {
               v()
             }
             break
           default:
-            return Reflect.set(target, property, value, receiver)
+            target[property] = value
+            return true
         }
 
         return true

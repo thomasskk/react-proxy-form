@@ -12,15 +12,13 @@ import {
 } from '../utils/proxySymbol.js'
 import { setSymbol } from './proxySymbol.js'
 
-export const watcher = <P extends Path<O>, O extends ObjType>(args: {
-  object: O
-  path: P
-  updateStore: any
-  watchStore: Set<string>
+export const watcher = <P extends Path<O>, O extends ObjType>(
+  object: O,
+  path: P,
+  updateStore: any,
+  watchStore: Set<string>,
   defaultValue?: any
-}) => {
-  const { object, path, updateStore, watchStore, defaultValue } = args
-
+) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const key = useRef<any>('default')
   const value = useRef<any>({ default: defaultValue ?? get(object, path) })
