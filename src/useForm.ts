@@ -23,8 +23,8 @@ import { unset } from './utils/unset.js'
 import { watcher } from './utils/watcher.js'
 import {
   refreshSymbol,
-  resetAndUpdateSymbol,
   resetSymbol,
+  updateGlbobalSymbol,
   updateSymbol,
 } from './utils/proxySymbol.js'
 
@@ -131,6 +131,10 @@ export function useForm<T extends ObjType>(
       }
     }
 
+    if (!isValid) {
+      formErrors.current.err = { code: updateGlbobalSymbol }
+    }
+
     isPrevValid.current = isValid
 
     return isValid
@@ -152,8 +156,8 @@ export function useForm<T extends ObjType>(
     return errorWatcher(formErrors.current, path)
   }
 
-  const errors = (path: string) => {
-    return errorsWatcher(formErrors.current, path)
+  const errors = () => {
+    return errorsWatcher(formErrors.current)
   }
 
   const setFormValue = (entry: RefElValue | undefined, name: string) => {

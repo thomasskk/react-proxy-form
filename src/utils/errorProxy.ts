@@ -4,33 +4,41 @@ import {
   refreshSymbol,
   resetAndUpdateSymbol,
   resetSymbol,
+  setGlobalSymbol,
   setSymbol,
+  updateGlbobalSymbol,
   updateSymbol,
 } from './proxySymbol.js'
 
 export const iM = Symbol('iM')
 export const mM = Symbol('mM')
+export const gM = Symbol('gM')
 
 export const errorProxy = () => {
   return new Proxy(
     {
       iM: new Map<string | symbol, () => void>(),
       mM: new Map<string | symbol, string[]>(),
-      gM: new Map<string | symbol, string[]>(),
+      gM: new Map<string | symbol, () => void>(),
     },
     {
       set: (target: any, property, value: ProxyCode) => {
         switch (value.code) {
+          case setGlobalSymbol:
+            target.gM.set(property, value.cb)
+            break
           case setSymbol:
             target.iM.set(property, value.cb)
             break
+          case updateGlbobalSymbol:
+            for (const [, v] of target.gM) {
+              v()
+            }
+            break
           case updateSymbol:
             const UPDATE_cb = target.iM.get(property)
-            if (!UPDATE_cb) {
-              break
-            }
             target.mM.set(property, value.value)
-            UPDATE_cb()
+            UPDATE_cb?.()
             break
           case refreshSymbol:
             target.mM.delete(property)
@@ -58,13 +66,13 @@ export const errorProxy = () => {
         return true
       },
       get: (target, property) => {
-        if (property === iM) {
-          return target.iM
-        }
-        if (property === mM) {
-          return target.mM
-        }
-        return target.mM.get(property)
+        return property === iM
+          ? target.iM
+          : property === mM
+          ? target.mM
+          : property === mM
+          ? target.gM
+          : target.mM.get(property)
       },
     }
   ) as any

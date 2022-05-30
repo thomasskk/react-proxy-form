@@ -10,10 +10,11 @@ describe('useForm', () => {
   describe('error', () => {
     test.only('', async () => {
       const Component = () => {
-        const { register, error, handleSubmit } = useForm<{
-          a: { b: number }
+        const { register, errors, error, handleSubmit } = useForm<{
+          a: { b: number; c: number }
         }>()
-        const err = error('a.b')
+        const errs = errors()
+        const err = error('a.c')
         return (
           <>
             <input
@@ -28,6 +29,19 @@ describe('useForm', () => {
                 ],
               })}
             />
+            <input
+              {...register('a.c', {
+                valueAs: Number,
+                defaultValue: 0,
+                validation: [
+                  {
+                    fn: (value) => value > 1,
+                    message: 'must be greater than 1',
+                  },
+                ],
+              })}
+            />
+            {<div>{errs?.['a.b']?.[0]}</div>}
             {<div>{err?.[0]}</div>}
             <button onClick={() => handleSubmit()()} />
           </>
@@ -35,7 +49,8 @@ describe('useForm', () => {
       }
       render(<Component />)
       await userEvent.click(screen.getByRole('button'))
-      expect(screen.getByText('must be greater than 0'))
+      expect(screen.getAllByText('must be greater than 0'))
+      expect(screen.getAllByText('must be greater than 1'))
     })
     // test('', () => {})
     // test('', () => {})
