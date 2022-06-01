@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "sideEffects": false,
   "type": "module",
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.esm.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -17,7 +20,8 @@
   "scripts": {
     "test": "vitest",
     "build": "rollup -c",
-    "release": "yarn build && npm publish"
+    "clean": "rm -rf dist",
+    "release": "yarn clean && yarn build && npm publish"
   },
   "prettier": {
     "arrowParens": "always",
