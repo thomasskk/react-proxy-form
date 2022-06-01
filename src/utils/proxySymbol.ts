@@ -13,7 +13,7 @@ export type ProxyCode =
   | { code: typeof setGlobalSymbol; cb: () => void }
   | { code: typeof deleteSymbol }
   | { code: typeof resetSymbol }
-  | { code: typeof updateSymbol; value: any }
+  | { code: typeof updateSymbol; value: string[] }
   | { code: typeof updateAllSymbol }
   | { code: typeof refreshSymbol }
   | { code: typeof resetAndUpdateSymbol }

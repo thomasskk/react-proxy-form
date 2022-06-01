@@ -3,10 +3,10 @@ import { isObject } from './isHelper.js'
 import { isProxy } from './proxySymbol.js'
 
 export const set = (
-  object: Record<string, any>,
+  object: object,
   path: string,
   value?: unknown,
-  offset: number = 1
+  offset = 1
 ) => {
   const arrPath = dotPathReader(path)
   const length = arrPath.length

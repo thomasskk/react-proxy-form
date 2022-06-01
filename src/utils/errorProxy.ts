@@ -22,7 +22,7 @@ export const errorProxy = () => {
       g: new Map<string | symbol, () => void>(), // global error
     },
     {
-      set: (target: any, property, value: ProxyCode) => {
+      set: (target, property, value: ProxyCode) => {
         switch (value.code) {
           case setGlobalSymbol:
             target.g.set(property, value.cb)
@@ -75,5 +75,5 @@ export const errorProxy = () => {
           : target.m.get(property)
       },
     }
-  ) as any
+  ) as object
 }

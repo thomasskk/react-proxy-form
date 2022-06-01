@@ -1,9 +1,8 @@
-import type { ObjType, ArrayType } from '../types/index.js'
 import { isProxy, proxyKeys } from './proxySymbol.js'
 
 // trigger cb on set when property is in keys and its value is changed
 export const valueProxy = <
-  T extends ObjType | ArrayType,
+  T extends object | unknown[],
   K extends (string | symbol)[]
 >(
   proxyValue: T,
@@ -11,7 +10,7 @@ export const valueProxy = <
   keys: K
 ) => {
   return new Proxy(proxyValue, {
-    set: (target, property: any, value) => {
+    set: (target, property, value) => {
       // if key is not in keys => normal behavior
 
       if (!keys.includes(property)) {
@@ -46,7 +45,7 @@ export const valueProxy = <
         return keys
       }
 
-      return target[p as any]
+      return target[p]
     },
   })
 }

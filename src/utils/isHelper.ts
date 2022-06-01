@@ -1,15 +1,13 @@
-import type { ObjType } from '../types/index.js'
-
-export const isEmptyObject = (obj: ObjType) => {
+export const isEmptyObject = (obj: object) => {
   let isEmpty = true
-  for (const i in obj) {
+  for (const _ in obj) {
     isEmpty = false
     break
   }
   return isEmpty
 }
 
-export const isObjWritable = (obj: any, key: string | number) => {
+export const isObjWritable = (obj: object, key: string | number) => {
   return !!Object.getOwnPropertyDescriptor(obj, key)?.writable
 }
 

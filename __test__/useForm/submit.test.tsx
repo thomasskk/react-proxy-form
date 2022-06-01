@@ -1,5 +1,3 @@
-;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
-
 import React from 'react'
 import { describe, test, expect, vi } from 'vitest'
 import { act, render } from '@testing-library/react'

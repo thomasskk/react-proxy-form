@@ -1,6 +1,4 @@
 import { useEffect, useReducer, useRef } from 'react'
-import type { ObjType } from '../types/index.js'
-import { Path, PropertyType } from '../types/utils.js'
 import { valueProxy } from './valueProxy.js'
 import { dotPathReader } from './dotPathReader.js'
 import { get } from './get.js'
@@ -12,25 +10,25 @@ import {
 } from '../utils/proxySymbol.js'
 import { setSymbol } from './proxySymbol.js'
 
-export const watcher = <P extends Path<O>, O extends ObjType>(
-  object: O,
-  path: P,
-  updateStore: any,
+export const watcher = (
+  object: object,
+  path: string,
+  updateStore: object,
   watchStore: Set<string>,
-  defaultValue?: any
+  defaultValue?: object
 ) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
-  const key = useRef<any>('d')
-  const value = useRef<any>({ d: defaultValue ?? get(object, path) })
+  const key = useRef<string | symbol | number>('d')
+  const value = useRef<object>({ d: defaultValue ?? get(object, path) })
 
   useEffect(() => {
     const setProxyFn = () => {
       const arrPath = dotPathReader(path)
       key.current = arrPath[arrPath.length - 1]
-      arrPath.reduce((acc: any, cv, index) => {
+      arrPath.reduce((acc, cv, index) => {
         if (index === arrPath.length - 2 || arrPath.length === 1) {
           // keys array to determine which property is watched
-          const keys = (object[proxyKeys] as any[]) || []
+          const keys = object[proxyKeys] || []
           keys.push(key.current)
 
           acc[cv] = valueProxy(
@@ -73,5 +71,5 @@ export const watcher = <P extends Path<O>, O extends ObjType>(
     }
   }, [])
 
-  return value.current?.[key.current] as PropertyType<O, P>
+  return value.current?.[key.current]
 }

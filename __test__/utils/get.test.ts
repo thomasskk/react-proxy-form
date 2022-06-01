@@ -13,8 +13,8 @@ describe('get', () => {
     expect(get(t1, 'b.a')).toEqual(1)
     expect(get(t1, 'c.a.b.[0].c')).toEqual(1)
     expect(get(t1, '')).toEqual(undefined)
-    expect(get(t1, null as any)).toEqual(undefined)
-    expect(get(t1, undefined as any)).toEqual(undefined)
+    expect(get(t1, null)).toEqual(undefined)
+    expect(get(t1, undefined)).toEqual(undefined)
 
     const t2 = [{ a: 1 }, 2]
     expect(get(t2, '[1]')).toEqual(2)

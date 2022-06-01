@@ -7,7 +7,7 @@ import { renderHookWithCount } from '../helper.js'
 describe('watcher', () => {
   test('value doesnt exist', () => {
     const { result } = renderHook(() =>
-      watcher({ a: {} } as any, 'a.b', updateProxy(), new Set())
+      watcher({ a: {} }, 'a.b', updateProxy(), new Set())
     )
     expect(result.current).toBeUndefined()
   })

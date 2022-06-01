@@ -3,7 +3,6 @@ import type {
   Element,
   GetValue,
   HandleSubmit,
-  ObjType,
   RefElValue,
   SetDefaultValue,
   SetValue,
@@ -12,7 +11,7 @@ import type {
   UseFormReturn,
   Watch,
 } from './types/index.js'
-import { DeepPartial } from './types/utils.js'
+import { DeepPartial, Path } from './types/utils.js'
 import { errorProxy } from './utils/errorProxy.js'
 import { updateProxy } from './utils/updateProxy.js'
 import { errorWatcher } from './utils/errorWatcher.js'
@@ -28,7 +27,7 @@ import {
   updateSymbol,
 } from './utils/proxySymbol.js'
 
-export function useForm<T extends ObjType>(
+export function useForm<T extends object>(
   props: UseFormProps<T> = {
     autoUnregister: false,
     resetOnSubmit: true,
@@ -56,7 +55,7 @@ export function useForm<T extends ObjType>(
 
   const isPrevValid = useRef(false)
 
-  const refEl = useRef<Map<string, RefElValue>>(new Map())
+  const refEl = useRef<Map<Path<T>, RefElValue<T, Path<T>>>>(new Map())
 
   const reset = () => {
     formValue.current.value =
@@ -97,13 +96,14 @@ export function useForm<T extends ObjType>(
     return set(formValue.current.value, name, value)
   }
 
-  const validate = (path: any) => {
+  const validate = <P extends Path<T>>(path: P) => {
     let isValid = true
-    let mssg: string[] = []
+    const mssg: string[] = []
     const ref = refEl.current.get(path)
     const value = getValue(path)
 
     ref?.validation?.forEach(({ fn, message }) => {
+      // @ts-expect-error map
       if (!fn(value)) {
         isValid = false
         mssg.push(message || 'Validation failed')
@@ -120,9 +120,9 @@ export function useForm<T extends ObjType>(
     }
 
     if (isValid) {
-      formErrors.current[path] = { code: refreshSymbol }
+      formErrors.current[path as string] = { code: refreshSymbol }
     } else {
-      formErrors.current[path] = { code: updateSymbol, value: mssg }
+      formErrors.current[path as string] = { code: updateSymbol, value: mssg }
     }
 
     return isValid
@@ -135,7 +135,7 @@ export function useForm<T extends ObjType>(
       return true
     }
 
-    formErrors.current.err = { code: resetSymbol }
+    formErrors.current[''] = { code: resetSymbol }
 
     for (const entry of refEl.current) {
       if (!validate(entry[0])) {
@@ -144,7 +144,7 @@ export function useForm<T extends ObjType>(
     }
 
     if (!isValid) {
-      formErrors.current.err = { code: updateGlbobalSymbol }
+      formErrors.current[''] = { code: updateGlbobalSymbol }
     }
 
     isPrevValid.current = isValid
@@ -152,26 +152,27 @@ export function useForm<T extends ObjType>(
     return isValid
   }
 
-  // @ts-expect-error
   const watch: Watch<T> = (path, opts) => {
     return watcher(
       formValue.current.value,
-      // @ts-expect-error
       path,
       updateStore.current,
       watchStore.current,
-      opts?.defaultValue
+      opts?.defaultValue as object
     )
   }
 
-  const setFormValue = (entry: RefElValue | undefined, name: string) => {
+  const setFormValue = <N extends Path<T>>(
+    entry: RefElValue<T, N> | undefined,
+    name: N
+  ) => {
     if (!entry) {
       return
     }
 
     const { elements, type, valueAs } = entry
 
-    let value: any[] = []
+    let value: unknown[] = []
 
     for (const element of elements.values() as IterableIterator<HTMLInputElement>) {
       if (type === 'checkbox') {
@@ -211,22 +212,21 @@ export function useForm<T extends ObjType>(
     }
   }
 
-  const register: UseFormRegister<T> = (name, _options = {}) => {
-    let {
+  const register: UseFormRegister<T> = (name, options = {}) => {
+    const {
       type = 'text',
       onChange,
       valueAs = String,
-      defaultValue,
       defaultChecked,
       value,
       validation,
       required,
-    } = _options
+    } = options
 
-    defaultValue = defaultValue ?? get(defaultFormValue, name)
+    let defaultValue = options.defaultValue ?? get(defaultFormValue, name)
 
     if (autoUnregister) {
-      defaultValue = defaultValue ?? (getValue(name) as any)
+      defaultValue = defaultValue ?? (getValue(name) as unknown)
       if (defaultValue !== undefined) {
         set(formValue.current.value, name, defaultValue)
       }
@@ -243,13 +243,16 @@ export function useForm<T extends ObjType>(
       onChange: (event) => {
         setFormValue(refEl.current.get(name), name)
 
-        if (isValidation && formErrors.current?.[name] !== undefined) {
+        if (
+          isValidation &&
+          formErrors.current?.[name as string] !== undefined
+        ) {
           validate(name)
-          formErrors.current.err = { code: updateGlbobalSymbol }
+          formErrors.current[''] = { code: updateGlbobalSymbol }
         }
 
         if (watchStore.current.has(name)) {
-          updateStore.current[name] = { code: updateSymbol }
+          updateStore.current[name as string] = { code: updateSymbol }
         }
 
         onChange?.(event)
@@ -266,6 +269,7 @@ export function useForm<T extends ObjType>(
             validation,
             required,
           }
+          // @ts-expect-error map
           refEl.current.set(name, newRef)
           setFormValue(newRef, name)
         } else if (!refElValue.elements.has(element)) {

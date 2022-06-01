@@ -5,12 +5,12 @@ import { valueProxy } from '../../src/utils/valueProxy.js'
 describe('valueProxy', () => {
   describe('Object value', () => {
     test('get proxy', () => {
-      const proxy = valueProxy({ a: 1 } as any, () => {}, ['b'])
+      const proxy = valueProxy({ a: 1 }, () => null, ['b'])
       expect(proxy[isProxy]).toBeTruthy()
       expect(proxy[proxyKeys]).toStrictEqual(['b'])
     })
     test('get value', () => {
-      const proxy = valueProxy({ a: 1 }, () => {}, ['b'])
+      const proxy = valueProxy({ a: 1 }, () => null, ['b'])
       expect(proxy.a).toEqual(1)
     })
     test('set with property in keys', () => {
@@ -37,13 +37,13 @@ describe('valueProxy', () => {
   describe('Array value', () => {
     test('get proxy', () => {
       const keys = ['0']
-      const proxy = valueProxy([0, 1], () => {}, keys)
-      expect(proxy[isProxy as any]).toBeTruthy()
-      expect(proxy[proxyKeys as any]).toStrictEqual(keys)
+      const proxy = valueProxy([0, 1], () => null, keys)
+      expect(proxy[isProxy]).toBeTruthy()
+      expect(proxy[proxyKeys]).toStrictEqual(keys)
     })
     test('get value', () => {
       const value = [0, 1]
-      const proxy = valueProxy(value, () => {}, ['0'])
+      const proxy = valueProxy(value, () => null, ['0'])
       expect(proxy[0]).toEqual(value[0])
     })
     test('set with property in keys', () => {

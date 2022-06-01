@@ -2,7 +2,7 @@ import { dotPathReader } from './dotPathReader.js'
 import { isObject, isObjWritable } from './isHelper.js'
 import { isProxy } from './proxySymbol.js'
 
-export const unset = (object: Record<string, any>, path: string) => {
+export const unset = (object: object, path: string) => {
   const arrPath = dotPathReader(path)
   const { length } = arrPath
 

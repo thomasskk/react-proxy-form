@@ -1,5 +1,3 @@
-;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
-
 import { describe, test, expect } from 'vitest'
 import { render, renderHook, screen } from '@testing-library/react'
 import { useForm } from '../../src/useForm.js'

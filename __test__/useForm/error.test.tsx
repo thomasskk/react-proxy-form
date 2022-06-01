@@ -1,5 +1,3 @@
-;(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true
-
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { useForm } from '../../src/useForm.js'

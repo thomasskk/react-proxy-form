@@ -23,10 +23,10 @@ describe('errorProxy', () => {
     proxy['foo'] = <PC>{ code: setSymbol, cb }
     proxy['foo'] = <PC>{
       code: updateSymbol,
-      value: 'bar',
+      value: ['bar'],
     }
     expect(cb).toHaveBeenCalledOnce()
-    expect(proxy[m].get('foo')).toEqual('bar')
+    expect(proxy[m].get('foo')).toEqual(['bar'])
   })
   test('refreshSymbol', () => {
     const proxy = errorProxy()
@@ -34,7 +34,7 @@ describe('errorProxy', () => {
     proxy['foo'] = <PC>{ code: setSymbol, cb }
     proxy['foo'] = <PC>{
       code: updateSymbol,
-      value: 'bar',
+      value: ['bar'],
     }
     proxy['foo'] = <PC>{ code: refreshSymbol }
     expect(proxy[m].get('foo')).toBeUndefined()
@@ -46,7 +46,7 @@ describe('errorProxy', () => {
     proxy['foo'] = <PC>{ code: setSymbol, cb }
     proxy['foo'] = <PC>{
       code: updateSymbol,
-      value: 'bar',
+      value: ['bar'],
     }
     proxy['foo'] = <PC>{ code: resetSymbol }
     expect(proxy[m].size).toEqual(0)
@@ -57,7 +57,7 @@ describe('errorProxy', () => {
     proxy['foo'] = <PC>{ code: setSymbol, cb }
     proxy['foo'] = <PC>{
       code: updateSymbol,
-      value: 'bar',
+      value: ['bar'],
     }
     proxy['foo'] = <PC>{ code: deleteSymbol }
     expect(proxy[m].get('foo')).toBeUndefined()
@@ -69,7 +69,7 @@ describe('errorProxy', () => {
     proxy['foo'] = <PC>{ code: setSymbol, cb }
     proxy['foo'] = <PC>{
       code: updateSymbol,
-      value: 'bar',
+      value: ['bar'],
     }
     proxy[''] = <PC>{ code: resetAndUpdateSymbol, value: '' }
     expect(proxy[m].size).toEqual(0)
