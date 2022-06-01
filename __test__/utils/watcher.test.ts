@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { test, describe, expect } from 'vitest'
-import { updateProxy } from '../../src/utils/updateProxy'
-import { watcher } from '../../src/utils/watcher'
-import { renderHookWithCount } from '../helper'
+import { updateProxy } from '../../src/utils/updateProxy.js'
+import { watcher } from '../../src/utils/watcher.js'
+import { renderHookWithCount } from '../helper.js'
 
 describe('watcher', () => {
   test('value doesnt exist', () => {

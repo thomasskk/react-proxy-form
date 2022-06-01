@@ -13,9 +13,8 @@ export default {
   output: {
     format: 'esm',
     globals: { react: 'React' },
-    dir: 'dist',
+    file: 'dist.js',
     exports: 'named',
-    preserveModules: true,
     entryFileNames: '[name].mjs',
   },
 }

@@ -2,7 +2,7 @@
 
 import { describe, test, expect } from 'vitest'
 import { render, renderHook, screen } from '@testing-library/react'
-import { useForm } from '../../src/useForm'
+import { useForm } from '../../src/useForm.js'
 import userEvent from '@testing-library/user-event'
 import React from 'react'
 
@@ -97,6 +97,7 @@ describe('useForm', () => {
 
       expect(result.current.getAllValue()).toEqual({ a: 1 })
     })
+
     test('should set default value on remount when autoRegister=false', () => {
       const { result, unmount } = renderHook(() =>
         useForm({

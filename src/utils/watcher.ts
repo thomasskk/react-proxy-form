@@ -20,8 +20,8 @@ export const watcher = <P extends Path<O>, O extends ObjType>(
   defaultValue?: any
 ) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
-  const key = useRef<any>('default')
-  const value = useRef<any>({ default: defaultValue ?? get(object, path) })
+  const key = useRef<any>('d')
+  const value = useRef<any>({ d: defaultValue ?? get(object, path) })
 
   useEffect(() => {
     const setProxyFn = () => {
@@ -33,11 +33,11 @@ export const watcher = <P extends Path<O>, O extends ObjType>(
           const keys = (object[proxyKeys] as any[]) || []
           keys.push(key.current)
 
-          acc[cv] = valueProxy({
-            keys,
-            value: isObject(acc[cv]) ? { ...acc[cv] } : acc[cv],
-            cb: forceUpdate,
-          })
+          acc[cv] = valueProxy(
+            isObject(acc[cv]) ? { ...acc[cv] } : acc[cv],
+            forceUpdate,
+            keys
+          )
 
           value.current = acc[cv]
         }

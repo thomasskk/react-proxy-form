@@ -52,7 +52,7 @@ export type UseFormReturn<T extends ObjType> = {
   register: UseFormRegister<T>
   reset: () => void
   error: Error<T>
-  errors: Errors<T>
+  errors: any
   handleSubmit: HandleSubmit<T>
   getValue: GetValue<T>
   setValue: SetValue<T>
@@ -84,6 +84,7 @@ export type UseFormRegisterOptions<T, P extends Path<T>> = {
   transformValue?: (value: any, el?: any) => any
   value?: any
   validation?: Validation<T, P>
+  required?: string | boolean
 }
 
 export type UseFormRegister<T> = <P extends Path<T>>(
@@ -130,4 +131,5 @@ export type RefElValue = {
   elements: Set<Element>
   type: InputType
   validation?: Validation<any, any>
+  required?: string | boolean
 }

@@ -3,7 +3,7 @@
 import { describe, test, expect } from 'vitest'
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import { useForm } from '../../src/useForm'
+import { useForm } from '../../src/useForm.js'
 import userEvent from '@testing-library/user-event'
 
 describe('useForm', () => {

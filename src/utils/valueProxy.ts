@@ -5,12 +5,11 @@ import { isProxy, proxyKeys } from './proxySymbol.js'
 export const valueProxy = <
   T extends ObjType | ArrayType,
   K extends (string | symbol)[]
->(args: {
-  value: T
-  cb: () => void
+>(
+  proxyValue: T,
+  cb: () => void,
   keys: K
-}) => {
-  const { value: proxyValue, cb, keys } = args
+) => {
   return new Proxy(proxyValue, {
     set: (target, property: any, value) => {
       // if key is not in keys => normal behavior
@@ -31,9 +30,6 @@ export const valueProxy = <
         return true
       }
 
-      // !!
-      // edge case ?
-      // !!
       if (Object.is(prevValue, value)) {
         return true
       }

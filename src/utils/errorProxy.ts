@@ -10,51 +10,51 @@ import {
   updateSymbol,
 } from './proxySymbol.js'
 
-export const iM = Symbol('iM')
-export const mM = Symbol('mM')
-export const gM = Symbol('gM')
+export const i = Symbol('i')
+export const m = Symbol('m')
+export const g = Symbol('g')
 
 export const errorProxy = () => {
   return new Proxy(
     {
-      iM: new Map<string | symbol, () => void>(),
-      mM: new Map<string | symbol, string[]>(),
-      gM: new Map<string | symbol, () => void>(),
+      i: new Map<string | symbol, () => void>(), // atomic error
+      m: new Map<string | symbol, string[]>(), // messages store
+      g: new Map<string | symbol, () => void>(), // global error
     },
     {
       set: (target: any, property, value: ProxyCode) => {
         switch (value.code) {
           case setGlobalSymbol:
-            target.gM.set(property, value.cb)
+            target.g.set(property, value.cb)
             break
           case setSymbol:
-            target.iM.set(property, value.cb)
+            target.i.set(property, value.cb)
             break
           case updateGlbobalSymbol:
-            for (const [, v] of target.gM) {
+            for (const [, v] of target.g) {
               v()
             }
             break
           case updateSymbol:
-            const UPDATE_cb = target.iM.get(property)
-            target.mM.set(property, value.value)
+            const UPDATE_cb = target.i.get(property)
+            target.m.set(property, value.value)
             UPDATE_cb?.()
             break
           case refreshSymbol:
-            target.mM.delete(property)
-            const REFRESH_cb = target.iM.get(property)
+            target.m.delete(property)
+            const REFRESH_cb = target.i.get(property)
             REFRESH_cb?.()
             break
           case resetSymbol:
-            target.mM = new Map()
+            target.m = new Map()
             break
           case deleteSymbol:
-            target.mM.delete(property)
-            target.iM.delete(property)
+            target.m.delete(property)
+            target.i.delete(property)
             break
           case resetAndUpdateSymbol:
-            target.mM = new Map()
-            for (const [, v] of target.iM) {
+            target.m = new Map()
+            for (const [, v] of target.i) {
               v()
             }
             break
@@ -66,13 +66,13 @@ export const errorProxy = () => {
         return true
       },
       get: (target, property) => {
-        return property === iM
-          ? target.iM
-          : property === mM
-          ? target.mM
-          : property === mM
-          ? target.gM
-          : target.mM.get(property)
+        return property === i
+          ? target.i
+          : property === m
+          ? target.m
+          : property === m
+          ? target.g
+          : target.m.get(property)
       },
     }
   ) as any
