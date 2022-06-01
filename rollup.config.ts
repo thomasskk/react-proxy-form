@@ -2,19 +2,33 @@ import { terser } from 'rollup-plugin-terser'
 import typescript from '@rollup/plugin-typescript'
 
 export default {
-  input: 'src/index.ts',
   external: ['react'],
+  input: 'src/index.ts',
   plugins: [
     typescript({
       tsconfig: 'tsconfig.build.json',
     }),
     terser(),
   ],
-  output: {
-    format: 'esm',
-    globals: { react: 'React' },
-    file: 'dist.js',
-    exports: 'named',
-    entryFileNames: '[name].mjs',
-  },
+  output: [
+    {
+      input: 'src/index.ts',
+      format: 'esm',
+      globals: { react: 'React' },
+      dir: 'dist',
+      exports: 'named',
+      preserveModules: true,
+      entryFileNames: '[name].esm.mjs',
+    },
+    {
+      input: 'src/index.ts',
+      format: 'cjs',
+      globals: { react: 'React' },
+      dir: 'dist',
+      exports: 'named',
+      preserveModules: true,
+      entryFileNames: '[name].cjs.js',
+    },
+    ,
+  ],
 }
