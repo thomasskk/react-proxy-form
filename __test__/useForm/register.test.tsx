@@ -114,19 +114,24 @@ describe('useForm', () => {
 
       expect(result.current.getAllValue()).toEqual({ a: 2 })
     })
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
-    // test('', () => {})
+
+    test('should set default value on remount when autoRegister=false', () => {
+      const { result, unmount } = renderHook(() =>
+        useForm({
+          autoUnregister: false,
+          defaultValue: { a: 1 },
+        })
+      )
+
+      result.current.register('a')
+
+      result.current.setValue('a', 2)
+
+      unmount()
+
+      result.current.register('a')
+
+      expect(result.current.getAllValue()).toEqual({ a: 2 })
+    })
   })
 })

@@ -3,7 +3,7 @@ import typescript from '@rollup/plugin-typescript'
 
 export default {
   external: ['react'],
-  input: 'src/index.ts',
+  input: 'dist/index.js',
   plugins: [
     typescript({
       tsconfig: 'tsconfig.build.json',
@@ -12,23 +12,14 @@ export default {
   ],
   output: [
     {
-      input: 'src/index.ts',
-      format: 'esm',
       globals: { react: 'React' },
-      dir: 'dist',
-      exports: 'named',
-      preserveModules: true,
-      entryFileNames: '[name].esm.mjs',
+      format: 'esm',
+      file: 'lib/index.esm.mjs',
     },
     {
-      input: 'src/index.ts',
-      format: 'cjs',
       globals: { react: 'React' },
-      dir: 'dist',
-      exports: 'named',
-      preserveModules: true,
-      entryFileNames: '[name].cjs.js',
+      format: 'cjs',
+      file: 'lib/index.cjs.js',
     },
-    ,
   ],
 }

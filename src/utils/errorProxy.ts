@@ -1,6 +1,5 @@
 import {
   deleteSymbol,
-  ProxyCode,
   refreshSymbol,
   resetAndUpdateSymbol,
   resetSymbol,
@@ -9,6 +8,7 @@ import {
   updateGlbobalSymbol,
   updateSymbol,
 } from './proxySymbol.js'
+import type { ProxyCode } from './proxySymbol.js'
 
 export const i = Symbol('i')
 export const m = Symbol('m')

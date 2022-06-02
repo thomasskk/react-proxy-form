@@ -11,7 +11,7 @@ import type {
   UseFormReturn,
   Watch,
 } from './types/index.js'
-import { DeepPartial, Path } from './types/utils.js'
+import type { DeepPartial, Path } from './types/utils.js'
 import { errorProxy } from './utils/errorProxy.js'
 import { updateProxy } from './utils/updateProxy.js'
 import { errorWatcher } from './utils/errorWatcher.js'
@@ -185,8 +185,7 @@ export function useForm<T extends object>(
       }
 
       if (entry.type === 'radio' && element.checked) {
-        set(formValue.current.value, name, valueAs(element?.value))
-        return
+        return set(formValue.current.value, name, valueAs(element?.value))
       }
 
       if (element?.value === undefined) {

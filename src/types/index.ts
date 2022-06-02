@@ -1,5 +1,5 @@
-import { ChangeEvent } from 'react'
-import { DeepPartial, Path, PropertyType } from './utils.js'
+import type { ChangeEvent } from 'react'
+import type { DeepPartial, Path, PropertyType } from './utils.js'
 
 export type Primitive =
   | boolean

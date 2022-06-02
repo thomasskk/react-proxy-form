@@ -3,11 +3,8 @@ import { valueProxy } from './valueProxy.js'
 import { dotPathReader } from './dotPathReader.js'
 import { get } from './get.js'
 import { isObject } from './isHelper.js'
-import {
-  deleteSymbol,
-  ProxyCode as PC,
-  proxyKeys,
-} from '../utils/proxySymbol.js'
+import { deleteSymbol, proxyKeys } from '../utils/proxySymbol.js'
+import type { ProxyCode as PC } from './proxySymbol.js'
 import { setSymbol } from './proxySymbol.js'
 
 export const watcher = (

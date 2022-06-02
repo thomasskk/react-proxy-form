@@ -1,3 +1,5 @@
+export * from './useForm.js'
+export * from './useFormContext.js'
 export type {
   Error,
   Errors,
@@ -9,5 +11,3 @@ export type {
   UseFormRegister,
   UseFormRegisterReturn,
 } from './types/index.js'
-export * from './useForm.js'
-export * from './useFormContext.js'
