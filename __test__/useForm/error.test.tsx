@@ -1,21 +1,24 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { useForm } from '../../src/useForm.js'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test } from 'vitest'
+import { UseFormReturn } from '../../src/index.js'
 
 describe('useForm', () => {
   describe('error', () => {
     test('error message should disappear when typing the right value', async () => {
+      let methods: UseFormReturn
+
       const Component = () => {
-        const { register, error, handleSubmit } = useForm<{
-          a: string
-        }>()
-        const err = error('a')
+        methods = useForm()
+
+        const err = methods.error('a')
+
         return (
           <>
             <input
-              {...register('a', {
+              {...methods.register('a', {
                 defaultValue: 'foo',
                 validation: [
                   {
@@ -26,28 +29,37 @@ describe('useForm', () => {
               })}
             />
             {<div>{err?.[0]}</div>}
-            <button onClick={() => handleSubmit()()} />
           </>
         )
       }
+
       render(<Component />)
-      await userEvent.click(screen.getByRole('button'))
-      expect(screen.queryByText('error message')).toBeDefined()
+
+      await act(async () => methods.handleSubmit()())
+
+      expect(screen.queryByText('error message')).not.toBeNull()
+
       await userEvent.clear(screen.getByRole('textbox'))
-      expect(screen.queryByText('error message')).toBeDefined()
+
+      expect(screen.queryByText('error message')).not.toBeNull()
+
       await userEvent.type(screen.getByRole('textbox'), 'bar')
+
       expect(screen.queryByText('error message')).toBeNull()
     })
+
     test('error message should disappear when typing the right value', async () => {
+      let methods: UseFormReturn
+
       const Component = () => {
-        const { register, error, handleSubmit } = useForm<{
-          a: string
-        }>()
-        const err = error('a')
+        methods = useForm()
+
+        const err = methods.error('a')
+
         return (
           <>
             <input
-              {...register('a', {
+              {...methods.register('a', {
                 defaultValue: 'foo',
                 validation: [
                   {
@@ -58,16 +70,22 @@ describe('useForm', () => {
               })}
             />
             {<div>{err?.[0]}</div>}
-            <button onClick={() => handleSubmit()()} />
           </>
         )
       }
+
       render(<Component />)
-      await userEvent.click(screen.getByRole('button'))
-      expect(screen.queryByText('error message')).toBeDefined()
+
+      await act(async () => methods.handleSubmit()())
+
+      expect(screen.queryByText('error message')).not.toBeNull()
+
       await userEvent.clear(screen.getByRole('textbox'))
-      expect(screen.queryByText('error message')).toBeDefined()
+
+      expect(screen.queryByText('error message')).not.toBeNull()
+
       await userEvent.type(screen.getByRole('textbox'), 'bar')
+
       expect(screen.queryByText('error message')).toBeNull()
     })
   })

@@ -1,8 +1,8 @@
+import React from 'react'
 import { describe, test, expect } from 'vitest'
 import { render, renderHook, screen } from '@testing-library/react'
 import { useForm } from '../../src/useForm.js'
 import userEvent from '@testing-library/user-event'
-import React from 'react'
 
 describe('useForm', () => {
   describe('register', () => {

@@ -96,19 +96,23 @@ export function useForm<T extends object>(
     return set(formValue.current.value, name, value)
   }
 
-  const validate = <P extends Path<T>>(path: P) => {
+  const validate = async (
+    path: Path<T>,
+    ref: RefElValue<T, Path<T>>,
+    values: T
+  ) => {
     let isValid = true
     const mssg: string[] = []
-    const ref = refEl.current.get(path)
     const value = getValue(path)
 
-    ref?.validation?.forEach(({ fn, message }) => {
-      // @ts-expect-error map
-      if (!fn(value)) {
-        isValid = false
-        mssg.push(message || 'Validation failed')
-      }
-    })
+    await Promise.all([
+      ...ref?.validation?.map(async ({ fn, message }) => {
+        if (!(await fn(value, values))) {
+          isValid = false
+          mssg.push(message || 'Validation failed')
+        }
+      }),
+    ])
 
     if (ref?.required) {
       if (value === undefined || value === null || value === '') {
@@ -128,7 +132,7 @@ export function useForm<T extends object>(
     return isValid
   }
 
-  const validateAll = () => {
+  const validateAll = async () => {
     let isValid = true
 
     if (!isValidation) {
@@ -137,11 +141,15 @@ export function useForm<T extends object>(
 
     formErrors.current[''] = { code: resetSymbol }
 
-    for (const entry of refEl.current) {
-      if (!validate(entry[0])) {
-        isValid = false
-      }
-    }
+    const values = getAllValue()
+
+    await Promise.all(
+      [...refEl.current.entries()].map(async (entry) => {
+        if (!(await validate(entry[0], entry[1], values))) {
+          isValid = false
+        }
+      })
+    )
 
     if (!isValid) {
       formErrors.current[''] = { code: updateGlbobalSymbol }
@@ -170,7 +178,7 @@ export function useForm<T extends object>(
       return
     }
 
-    const { elements, type, valueAs } = entry
+    const { elements, type, valueAs, transform } = entry
 
     let value: unknown[] = []
 
@@ -179,19 +187,23 @@ export function useForm<T extends object>(
         if (element?.checked) {
           value.push(valueAs(element.value))
         } else {
-          value = value?.filter((v) => v !== valueAs(element?.value))
+          value = value?.filter((v) => v !== transform(valueAs(element?.value)))
         }
         continue
       }
 
       if (entry.type === 'radio' && element.checked) {
-        return set(formValue.current.value, name, valueAs(element?.value))
+        return set(
+          formValue.current.value,
+          name,
+          transform(valueAs(element?.value))
+        )
       }
 
       if (element?.value === undefined) {
         set(formValue.current.value, name, undefined)
       } else {
-        set(formValue.current.value, name, valueAs(element?.value))
+        set(formValue.current.value, name, transform(valueAs(element?.value)))
       }
       return
     }
@@ -199,12 +211,12 @@ export function useForm<T extends object>(
     set(formValue.current.value, name, value)
   }
 
-  const handleSubmit: HandleSubmit<T> = (callback) => (e) => {
-    if (isValidation && !validateAll()) {
+  const handleSubmit: HandleSubmit<T> = (callback) => async (e) => {
+    if (isValidation && !(await validateAll())) {
       return
     }
 
-    callback?.(getAllValue(), e)
+    await callback?.(getAllValue(), e)
 
     if (resetOnSubmit) {
       reset()
@@ -216,16 +228,17 @@ export function useForm<T extends object>(
       type = 'text',
       onChange,
       valueAs = String,
+      transform = (v) => v,
       defaultChecked,
       value,
-      validation,
+      validation = [],
       required,
     } = options
 
     let defaultValue = options.defaultValue ?? get(defaultFormValue, name)
 
     if (autoUnregister) {
-      defaultValue = defaultValue ?? (getValue(name) as unknown)
+      defaultValue = defaultValue ?? getValue(name)
       if (defaultValue !== undefined) {
         set(formValue.current.value, name, defaultValue)
       }
@@ -239,14 +252,15 @@ export function useForm<T extends object>(
         value,
         defaultValue,
       },
-      onChange: (event) => {
-        setFormValue(refEl.current.get(name), name)
+      onChange: async (event) => {
+        const ref = refEl.current.get(name)
+        setFormValue(ref, name)
 
         if (
           isValidation &&
           formErrors.current?.[name as string] !== undefined
         ) {
-          validate(name)
+          await validate(name, ref, getAllValue())
           formErrors.current[''] = { code: updateGlbobalSymbol }
         }
 
@@ -254,7 +268,7 @@ export function useForm<T extends object>(
           updateStore.current[name as string] = { code: updateSymbol }
         }
 
-        onChange?.(event)
+        await onChange?.(event)
       },
       ref: (element: Element) => {
         const refElValue = refEl.current.get(name)
@@ -267,11 +281,12 @@ export function useForm<T extends object>(
             type,
             validation,
             required,
+            transform,
           }
-          // @ts-expect-error map
+          // @ts-expect-error type
           refEl.current.set(name, newRef)
           setFormValue(newRef, name)
-        } else if (!refElValue.elements.has(element)) {
+        } else if (element && !refElValue.elements.has(element)) {
           refElValue.elements.add(element)
           setFormValue(refElValue, name)
         }

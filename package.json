@@ -1,20 +1,21 @@
 {
   "name": "react-proxy-form",
   "packageManager": "yarn@4.0.0-rc.6",
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.1",
   "sideEffects": false,
   "files": [
     "lib"
   ],
   "type": "module",
   "main": "./lib/index.cjs.js",
-  "module": "./lib/index.esm.mjs",
   "types": "./lib/index.d.ts",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
+      "types": "./lib/index.d.ts",
+      "module": "./lib/index.esm.mjs",
       "import": "./lib/index.esm.mjs",
-      "require": "./lib/index.cjs.js",
-      "types": "./lib/index.d.ts"
+      "require": "./lib/index.cjs.js"
     }
   },
   "scripts": {

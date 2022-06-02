@@ -38,7 +38,7 @@ export type Watch<T extends object> = <P extends Path<T>>(
   opts?: { defaultValue: PropertyType<T, P> }
 ) => PropertyType<T, P>
 
-export type UseFormReturn<T extends object> = {
+export type UseFormReturn<T extends object = any> = {
   register: UseFormRegister<T>
   reset: () => void
   error: Error<T>
@@ -61,7 +61,7 @@ export type ValueAs =
   | (() => void)
 
 type Validation<T, P extends Path<T>> = {
-  fn: (v: PropertyType<T, P>) => boolean
+  fn: (v: PropertyType<T, P>, values: T) => boolean | Promise<boolean>
   message?: string
 }[]
 
@@ -69,9 +69,9 @@ export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
   defaultValue?: PropertyType<T, P>
   valueAs?: ValueAs
-  onChange?: (event: eventEl) => void
+  onChange?: (event: eventEl) => void | Promise<void>
   defaultChecked?: boolean
-  transformValue?: (value: PropertyType<T, P>, el?: Element) => unknown
+  transform?: (value: PropertyType<T, P>, el?: Element) => unknown
   value?: PropertyType<T, P>
   validation?: Validation<T, P>
   required?: string | boolean
@@ -83,7 +83,7 @@ export type UseFormRegister<T> = <P extends Path<T>>(
 ) => UseFormRegisterReturn<T, P>
 
 export type UseFormRegisterReturn<T, P extends Path<T>> = {
-  onChange: (event: eventEl) => void
+  onChange: (event: eventEl) => Promise<void>
   ref: (el: Element) => void
   name: string
   defaultValue?: PropertyType<T, P>
@@ -95,8 +95,8 @@ export type UseFormRegisterReturn<T, P extends Path<T>> = {
 export type SubmitHandler<T> = (data: T) => void
 
 export type HandleSubmit<T> = (
-  cb?: (data: T, e?: React.BaseSyntheticEvent) => void
-) => (event?: React.BaseSyntheticEvent) => void
+  cb?: (data: T, e?: React.BaseSyntheticEvent) => Promise<void> | void
+) => (event?: React.BaseSyntheticEvent) => Promise<void>
 
 export type InputType =
   | 'checkbox'
@@ -122,4 +122,5 @@ export type RefElValue<T, P extends Path<T>> = {
   type: InputType
   validation?: Validation<T, P>
   required?: string | boolean
+  transform?: (value: any, el?: Element) => any
 }
