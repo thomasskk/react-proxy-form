@@ -14,7 +14,6 @@ import type {
 import type { DeepPartial, Path } from './types/utils.js'
 import { errorProxy } from './utils/errorProxy.js'
 import { updateProxy } from './utils/updateProxy.js'
-import { errorWatcher } from './utils/errorWatcher.js'
 import { errorsWatcher } from './utils/errorsWatcher.js'
 import { get } from './utils/get.js'
 import { set } from './utils/set.js'
@@ -299,7 +298,7 @@ export function useForm<T extends object>(
     reset,
     watch,
     errors: () => errorsWatcher(formErrors.current),
-    error: (path) => errorWatcher(formErrors.current, path),
+    error: (path) => errorsWatcher(formErrors.current, path),
     handleSubmit,
     setValue,
     getValue,
