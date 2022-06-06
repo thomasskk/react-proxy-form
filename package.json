@@ -1,6 +1,5 @@
 {
   "name": "react-proxy-form",
-  "packageManager": "yarn@4.0.0-rc.6",
   "version": "1.0.0-rc.1",
   "sideEffects": false,
   "files": [
@@ -21,8 +20,8 @@
   "scripts": {
     "test": "vitest",
     "clean": "rm -rf dist lib",
-    "build": "yarn clean && yarn tsc -p tsconfig.build.json --outDir dist & yarn tsc -p tsconfig.build.json --emitDeclarationOnly && yarn rollup -c",
-    "release": "yarn build && npm publish"
+    "build": "pnpm clean && pnpm tsc -p tsconfig.build.json --outDir dist & pnpm tsc -p tsconfig.build.json --emitDeclarationOnly && pnpm rollup -c",
+    "release": "pnpm build && npm publish"
   },
   "prettier": {
     "arrowParens": "always",
@@ -42,7 +41,6 @@
     "@types/react-dom": "18.0.5",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@typescript-eslint/parser": "^5.27.0",
-    "@yarnpkg/sdks": "^3.0.0-rc.6",
     "autoprefixer": "^10.4.7",
     "c8": "^7.11.3",
     "eslint": "^8.16.0",
@@ -55,9 +53,5 @@
     "rollup-plugin-terser": "^7.0.2",
     "typescript": "^4.7.2",
     "vitest": "^0.13.1"
-  },
-  "resolutions": {
-    "@types/react": "18.0.10",
-    "@types/dom": "18.0.5"
   }
 }
