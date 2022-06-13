@@ -14,8 +14,10 @@
 import { useForm } from 'react-proxy-form'
 
 function Form() {
-  const { register, handleSubmit, errors } =
-    useForm<{ age: number; data: [{ id: string }] }>()
+  const { register, handleSubmit, errors } = useForm<{
+    age: number
+    data: [{ id: string }]
+  }>()
 
   const errs = errors()
 
@@ -26,7 +28,7 @@ function Form() {
           required: true,
           valueAs: Number,
           validation: [
-            { fn: (v) => v > 0, message: 'Must be greater than 21' },
+            { fn: (v) => v >= 18, message: 'You must be at least 18' },
           ],
         })}
       />
@@ -44,11 +46,38 @@ function Form() {
 }
 ```
 
-### Installation
+## Installation
 
 ```bash
 npm i react-proxy-form
 yarn add react-proxy-form
 ```
 
-### useForm
+## useForm
+
+### UseFormReturn
+
+#### `required`
+
+> boolean, string, undefined
+
+Indicate if the field is required or not. <br/>
+Passing a string is equivalent to `true` and will modify the default error mesage which is `"Field required"`. <br />
+A field is considered empty when it's value is : `undefined`, `null` or `''`.
+
+#### `error`
+
+> (path: string) => string[] | undefined
+
+Return a hook which will trigger a single re-render for the specified path on validation if there is an error.
+
+```ts
+import { useFormContext } form 'react-proxy-form'
+
+const Component = () => {
+  const { error } = useFormContext<{}>()
+  const err = error()
+
+  return <p>{err[0]}</p>
+}
+```
