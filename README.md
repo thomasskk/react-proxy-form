@@ -69,7 +69,7 @@ A field is considered empty when it's value is : `undefined`, `null` or `''`.
 
 > (path: string) => string[] | undefined
 
-Return a hook which will trigger a single re-render for the specified path on validation if there is an error.
+Return a hook which will trigger a single re-render when there is a validation error at the specified path.
 
 ```ts
 import { useFormContext } form 'react-proxy-form'
