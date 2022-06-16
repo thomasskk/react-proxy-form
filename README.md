@@ -53,31 +53,136 @@ npm i react-proxy-form
 yarn add react-proxy-form
 ```
 
-## useForm
+## UseForm\<T\>
 
-### UseFormReturn
+```ts
+import { useForm } form 'react-proxy-form'
 
-#### `required`
+const Component = () => {
+  const { register } = useForm<{id: number}>({
+	defaultValue: { id: 1 },
+	isValidation: true,
+	resetOnSubmit: true,
+	autoUnregister: false,
+  })
+}
+```
 
-> boolean, string, undefined
+options:
 
-Indicate if the field is required or not. <br/>
-Passing a string is equivalent to `true` and will modify the default error mesage which is `"Field required"`. <br />
-A field is considered empty when it's value is : `undefined`, `null` or `''`.
+- ##### `defaultValue?:` DeepPartial\<T\>
 
-#### `error`
+- ##### `isValidation?:` boolean = true
 
-> (path: string) => string[] | undefined
+- ##### `resetOnSubmit?:` boolean = true
 
-Return a hook which will trigger a single re-render when there is a validation error at the specified path.
+- ##### `autoUnregister?:` boolean = false
+  Unregister elements when they unmount.
+  If the element remount it's defaultValue will be automatically set.
+
+## UseFormReturn\<T\>
+
+#### register
+
+> function register(path, options)
 
 ```ts
 import { useFormContext } form 'react-proxy-form'
 
 const Component = () => {
-  const { error } = useFormContext<{}>()
+  const { register } = useFormContext<{id: number}>()
+
+  return <input {...register('id', {
+	required: 'You must enter a value',
+	type: 'number',
+	defaultValue: 2,
+	transform: (v) => +v,
+	onChange: (e) => console.log(e),
+	validation: [{ fn: (v) => v > 0, message: 'Value must be superior to 0' }]
+  })} />
+}
+```
+
+options:
+
+- ##### `required?:` boolean, string, undefined = false
+
+  Indicate if the field is required or not. <br/>
+  Passing a string is equivalent to `true` and will modify the default error mesage which is `"Field required"`. <br />
+  A field is considered empty when it's value is : `undefined`, `null` or `''`.
+
+- ##### `type?:` HTLM input type attribute = 'text'
+
+- ##### `defaultValue?:` V
+
+- ##### `transform?:` (value: P, el: HTMLElement | null) => unknown
+
+- ##### `onChange?:` (event: changeEvent) => void | Promise<void>
+
+- ##### `defaultChecked?:` boolean
+
+- ##### `value?:` T
+
+- ##### `validation` { fn: (v: P, values: V) => boolean | Promise<boolean>, message?: string }[]
+
+#### error
+
+> (path: P) => string[] | undefined
+
+Return a hook which trigger a single re-render when there is a validation error at the specified path.
+The size of the array of error depend on the size of the validation array (+1 if required is true)
+
+```ts
+import { useFormContext } form 'react-proxy-form'
+
+const Component = () => {
+  const { error } = useFormContext()
   const err = error()
 
   return <p>{err[0]}</p>
 }
 ```
+
+#### errors
+
+> () => string[] | undefined
+
+Hook which trigger a single re-render when there is a validation error at the specified path.
+The size of the array of error depend on the size of the validation array (+1 if required is true)
+
+```ts
+import { useForm } form 'react-proxy-form'
+
+const Component = () => {
+  const { errors } = useForm<{id: number}>()
+  const errs = errors()
+
+  return <p>{errs.id[0]}</p>
+}
+```
+
+#### reset
+
+Reset everything to the initial state. Trigger a re-render.
+
+#### getValue
+
+> (path: P) => V
+
+#### setValue
+
+> (path: P, value: V) => void
+
+#### getAllValue
+
+> () => T
+
+#### setDefaultValue
+
+> (value: DeepPartial<T>) => void
+
+#### watch
+
+> (path: P, opts?: { defaultValue: P }) => V
+
+Hook which return the watched value and trigger a single re-render when it change.
