@@ -68,7 +68,6 @@ type Validation<T, P extends Path<T>> = {
 export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
   defaultValue?: PropertyType<T, P>
-  valueAs?: ValueAs
   onChange?: (event: eventEl) => void | Promise<void>
   defaultChecked?: boolean
   transform?: (value: PropertyType<T, P>, el?: Element) => unknown
@@ -117,7 +116,6 @@ export type Element =
 
 export type RefElValue<T, P extends Path<T>> = {
   defaultValue: object
-  valueAs: ValueAs
   elements: Set<Element>
   type: InputType
   validation?: Validation<T, P>

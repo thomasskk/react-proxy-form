@@ -43,7 +43,7 @@ describe('useForm', () => {
                 type: 'checkbox',
                 value: 1,
                 defaultChecked: true,
-                valueAs: Number,
+                transform: Number,
               })}
             />
             <input
@@ -51,7 +51,7 @@ describe('useForm', () => {
                 type: 'checkbox',
                 value: 2,
                 defaultChecked: true,
-                valueAs: Number,
+                transform: Number,
               })}
             />
           </>

@@ -177,16 +177,16 @@ export function useForm<T extends object>(
       return
     }
 
-    const { elements, type, valueAs, transform } = entry
+    const { elements, type, transform } = entry
 
     let value: unknown[] = []
 
     for (const element of elements.values() as IterableIterator<HTMLInputElement>) {
       if (type === 'checkbox') {
         if (element?.checked) {
-          value.push(valueAs(element.value))
+          value.push(transform(element?.value, element))
         } else {
-          value = value?.filter((v) => v !== transform(valueAs(element?.value)))
+          value = value?.filter((v) => v !== transform(element?.value, element))
         }
         continue
       }
@@ -195,14 +195,14 @@ export function useForm<T extends object>(
         return set(
           formValue.current.value,
           name,
-          transform(valueAs(element?.value))
+          transform(element?.value, element)
         )
       }
 
       if (element?.value === undefined) {
         set(formValue.current.value, name, undefined)
       } else {
-        set(formValue.current.value, name, transform(valueAs(element?.value)))
+        set(formValue.current.value, name, transform(element?.value, element))
       }
       return
     }
@@ -226,7 +226,6 @@ export function useForm<T extends object>(
     const {
       type = 'text',
       onChange,
-      valueAs = String,
       transform = (v) => v,
       defaultChecked,
       value,
@@ -276,7 +275,6 @@ export function useForm<T extends object>(
           const newRef = {
             elements: new Set([element]),
             defaultValue,
-            valueAs,
             type,
             validation,
             required,
