@@ -78,7 +78,7 @@ options:
 
 - ##### `autoUnregister?:` boolean = false
   Unregister elements when they unmount.
-  If the element remount it's defaultValue will be automatically set.
+  If the element remount its defaultValue will be automatically set.
 
 ## UseFormReturn\<T\>
 
@@ -109,7 +109,7 @@ options:
 
   Indicate if the field is required or not. <br/>
   Passing a string is equivalent to `true` and will modify the default error mesage which is `"Field required"`. <br />
-  A field is considered empty when it's value is : `undefined`, `null` or `''`.
+  A field is considered empty when its value is : `undefined`, `null` or `''`.
 
 - ##### `type?:` HTLM input type attribute = 'text'
 
