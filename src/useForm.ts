@@ -27,13 +27,13 @@ import {
 } from './utils/proxySymbol.js'
 
 export function useForm<T extends object>(
-  props: UseFormProps<T> = {
-    autoUnregister: false,
-    resetOnSubmit: true,
-    isValidation: true,
-  }
+  props: UseFormProps<T> = {}
 ): UseFormReturn<T> {
-  const { isValidation, autoUnregister, resetOnSubmit } = props
+  const {
+    isValidation = true,
+    autoUnregister = false,
+    resetOnSubmit = true,
+  } = props
 
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const [defaultFormValue, setdefaultFormValue] = useState(props.defaultValue)
