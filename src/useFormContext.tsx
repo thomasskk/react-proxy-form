@@ -1,5 +1,5 @@
 import React, { createContext, useContext } from 'react'
-import type { UseFormReturn } from './types/index.js'
+import type { UseFormReturn } from './types/index'
 
 const HookFormContext = createContext<UseFormReturn<object> | null>(null)
 

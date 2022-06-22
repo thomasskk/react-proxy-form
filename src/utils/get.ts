@@ -1,4 +1,4 @@
-import { dotPathReader } from './dotPathReader.js'
+import { dotPathReader } from './dotPathReader'
 
 export const get = (object: object, path: string) => {
   if (!path) {

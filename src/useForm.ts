@@ -10,21 +10,21 @@ import type {
   UseFormRegister,
   UseFormReturn,
   Watch,
-} from './types/index.js'
-import type { Path } from './types/utils.js'
-import { errorProxy } from './utils/errorProxy.js'
-import { errorsWatcher } from './utils/errorsWatcher.js'
-import { get } from './utils/get.js'
+} from './types/index'
+import type { Path } from './types/utils'
+import { errorProxy } from './utils/errorProxy'
+import { errorsWatcher } from './utils/errorsWatcher'
+import { get } from './utils/get'
 import {
   refreshSymbol,
   resetSymbol,
   updateGlbobalSymbol,
   updateSymbol,
-} from './utils/proxySymbol.js'
-import { set } from './utils/set.js'
-import { unset } from './utils/unset.js'
-import { updateProxy } from './utils/updateProxy.js'
-import { watcher } from './utils/watcher.js'
+} from './utils/proxySymbol'
+import { set } from './utils/set'
+import { unset } from './utils/unset'
+import { updateProxy } from './utils/updateProxy'
+import { watcher } from './utils/watcher'
 
 export function useForm<T extends object = any>(
   props: UseFormProps<T> = {}

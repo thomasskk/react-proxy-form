@@ -1,6 +1,6 @@
 import { test, describe, expect, vi } from 'vitest'
-import { isProxy, proxyKeys } from '../../src/utils/proxySymbol.js'
-import { valueProxy } from '../../src/utils/valueProxy.js'
+import { isProxy, proxyKeys } from '../../src/utils/proxySymbol'
+import { valueProxy } from '../../src/utils/valueProxy'
 
 describe('valueProxy', () => {
   describe('Object value', () => {

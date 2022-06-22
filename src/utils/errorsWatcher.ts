@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from 'react'
-import { deleteSymbol, setGlobalSymbol, setSymbol } from './proxySymbol.js'
+import { deleteSymbol, setGlobalSymbol, setSymbol } from './proxySymbol'
 
 export const errorsWatcher = (prox: object, name = '') => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]

@@ -1,5 +1,5 @@
 import { test, describe, expect, vi } from 'vitest'
-import { errorProxy, i, m } from '../../src/utils/errorProxy.js'
+import { errorProxy, i, m } from '../../src/utils/errorProxy'
 import {
   deleteSymbol,
   resetSymbol,
@@ -8,7 +8,7 @@ import {
   ProxyCode as PC,
   resetAndUpdateSymbol,
   refreshSymbol,
-} from '../../src/utils/proxySymbol.js'
+} from '../../src/utils/proxySymbol'
 
 describe('errorProxy', () => {
   test('setSymbol', () => {

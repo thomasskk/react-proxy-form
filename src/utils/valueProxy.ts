@@ -1,4 +1,4 @@
-import { isProxy, proxyKeys } from './proxySymbol.js'
+import { isProxy, proxyKeys } from './proxySymbol'
 
 // trigger cb on set when property is in keys and its value is changed
 export const valueProxy = <

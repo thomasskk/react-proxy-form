@@ -1,5 +1,5 @@
 import { test, describe, expect } from 'vitest'
-import { unset } from '../../src/utils/unset.js'
+import { unset } from '../../src/utils/unset'
 
 describe('unset', () => {
   test('unset the correct value', () => {

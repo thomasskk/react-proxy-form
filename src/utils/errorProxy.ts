@@ -7,8 +7,8 @@ import {
   setSymbol,
   updateGlbobalSymbol,
   updateSymbol,
-} from './proxySymbol.js'
-import type { ProxyCode } from './proxySymbol.js'
+} from './proxySymbol'
+import type { ProxyCode } from './proxySymbol'
 
 export const i = Symbol('i')
 export const m = Symbol('m')

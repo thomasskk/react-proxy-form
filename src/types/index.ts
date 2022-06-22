@@ -1,6 +1,5 @@
 import type { ChangeEvent, HTMLInputTypeAttribute } from 'react'
-import { useForm } from '../useForm.js'
-import type { DeepPartial, Path, PropertyType } from './utils.js'
+import type { DeepPartial, Path, PropertyType } from './utils'
 
 export type Primitive =
   | boolean

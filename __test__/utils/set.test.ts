@@ -1,5 +1,5 @@
 import { test, describe, expect } from 'vitest'
-import { set } from '../../src/utils/set.js'
+import { set } from '../../src/utils/set'
 
 describe('set', () => {
   test('set the correct value', () => {

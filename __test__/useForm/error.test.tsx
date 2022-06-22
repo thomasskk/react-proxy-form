@@ -1,9 +1,9 @@
 import React from 'react'
 import { act, render, screen } from '@testing-library/react'
-import { useForm } from '../../src/useForm.js'
+import { useForm } from '../../src/useForm'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test } from 'vitest'
-import { UseFormReturn } from '../../src/index.js'
+import { UseFormReturn } from '../../src/index'
 
 describe('useForm', () => {
   describe('error', () => {

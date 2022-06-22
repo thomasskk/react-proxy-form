@@ -1,6 +1,6 @@
-import { dotPathReader } from './dotPathReader.js'
-import { isObject } from './isHelper.js'
-import { isProxy } from './proxySymbol.js'
+import { dotPathReader } from './dotPathReader'
+import { isObject } from './isHelper'
+import { isProxy } from './proxySymbol'
 
 export const set = (
   object: object,

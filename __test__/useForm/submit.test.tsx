@@ -1,8 +1,8 @@
 import React from 'react'
 import { describe, test, expect, vi } from 'vitest'
 import { act, render } from '@testing-library/react'
-import { useForm } from '../../src/useForm.js'
-import { UseFormReturn } from '../../src/index.js'
+import { useForm } from '../../src/useForm'
+import { UseFormReturn } from '../../src/index'
 
 describe('useForm', () => {
   describe('submit', () => {

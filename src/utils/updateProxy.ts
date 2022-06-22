@@ -4,8 +4,8 @@ import {
   setSymbol,
   updateAllSymbol,
   updateSymbol,
-} from './proxySymbol.js'
-import type { ProxyCode } from './proxySymbol.js'
+} from './proxySymbol'
+import type { ProxyCode } from './proxySymbol'
 
 export const updateProxy = () =>
   new Proxy(
