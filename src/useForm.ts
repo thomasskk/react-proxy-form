@@ -26,7 +26,7 @@ import {
   updateSymbol,
 } from './utils/proxySymbol.js'
 
-export function useForm<T extends object>(
+export function useForm<T extends object = any>(
   props: UseFormProps<T> = {}
 ): UseFormReturn<T> {
   const {

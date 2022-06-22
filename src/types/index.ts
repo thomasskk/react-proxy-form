@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, HTMLInputTypeAttribute } from 'react'
 import type { DeepPartial, Path, PropertyType } from './utils.js'
 
 export type Primitive =
@@ -16,7 +16,7 @@ export type eventEl =
   | ChangeEvent<HTMLSelectElement>
   | ChangeEvent<null>
 
-export type UseFormProps<T extends object> = {
+export type UseFormProps<T extends object = any> = {
   defaultValue?: DeepPartial<T>
   autoUnregister?: boolean
   resetOnSubmit?: boolean
@@ -81,7 +81,7 @@ export type UseFormRegister<T> = <P extends Path<T>>(
   _options?: UseFormRegisterOptions<T, P>
 ) => UseFormRegisterReturn<T, P>
 
-export type UseFormRegisterReturn<T, P extends Path<T>> = {
+export type UseFormRegisterReturn<T = any, P extends Path<T> = any> = {
   onChange: (event: eventEl) => Promise<void>
   ref: (el: Element) => void
   name: string
@@ -93,20 +93,11 @@ export type UseFormRegisterReturn<T, P extends Path<T>> = {
 
 export type SubmitHandler<T> = (data: T) => void
 
-export type HandleSubmit<T> = (
+export type HandleSubmit<T = any> = (
   cb?: (data: T, e?: React.BaseSyntheticEvent) => Promise<void> | void
 ) => (event?: React.BaseSyntheticEvent) => Promise<void>
 
-export type InputType =
-  | 'checkbox'
-  | 'radio'
-  | 'text'
-  | 'date'
-  | 'datetime-local'
-  | 'password'
-  | 'number'
-  | 'textarea'
-  | 'select'
+export type InputType = HTMLInputTypeAttribute | 'textarea' | 'select'
 
 export type Element =
   | HTMLInputElement
