@@ -41,6 +41,8 @@ export type PropertyType<
     Type[Prefix]
   : unknown
 
-export type DeepPartial<T> = {
-  [P in keyof T]?: DeepPartial<T[P]>
-}
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>
+    }
+  : T
