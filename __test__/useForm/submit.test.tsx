@@ -76,7 +76,7 @@ describe('useForm', () => {
 
       const cb = vi.fn()
 
-      await methods.handleSubmit(cb)()
+      await act(async () => methods.handleSubmit(cb)())
 
       expect(cb).toHaveBeenCalledTimes(1)
     })

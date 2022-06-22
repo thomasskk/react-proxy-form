@@ -60,10 +60,15 @@ export type ValueAs =
   | ((value: unknown) => unknown)
   | (() => void)
 
-type Validation<T, P extends Path<T>> = {
+type ValidationArray<T, P extends Path<T>> = {
   fn: (v: PropertyType<T, P>, values: T) => boolean | Promise<boolean>
   message?: string
 }[]
+
+type ValidationFn<T, P extends Path<T>> = (
+  v: PropertyType<T, P>,
+  values: T
+) => boolean | Promise<boolean>
 
 export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
@@ -72,7 +77,8 @@ export type UseFormRegisterOptions<T, P extends Path<T>> = {
   defaultChecked?: boolean
   transform?: (value: PropertyType<T, P>, el?: Element) => unknown
   value?: PropertyType<T, P>
-  validation?: Validation<T, P>
+  validation?: ValidationFn<T, P> | ValidationArray<T, P>
+  message?: string
   required?: string | boolean
 }
 
@@ -109,7 +115,8 @@ export type RefElValue<T, P extends Path<T>> = {
   defaultValue: object
   elements: Set<Element>
   type: InputType
-  validation?: Validation<T, P>
+  validation?: ValidationArray<T, P> | ValidationFn<T, P>
+  message?: string
   required?: string | boolean
   transform?: (value: any, el?: Element) => any
 }

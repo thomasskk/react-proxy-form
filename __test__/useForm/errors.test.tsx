@@ -20,12 +20,8 @@ describe('useForm', () => {
           <>
             <input
               {...methods.register('a', {
-                validation: [
-                  {
-                    fn: (value) => value === 'bar',
-                    message: 'error a',
-                  },
-                ],
+                validation: (value) => value === 'bar',
+                message: 'error a',
               })}
             />
             {errs.a && <div>{errs.a[0]}</div>}

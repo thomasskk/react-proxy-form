@@ -11,7 +11,7 @@ import type {
   UseFormReturn,
   Watch,
 } from './types/index.js'
-import type { DeepPartial, Path } from './types/utils.js'
+import type { Path } from './types/utils.js'
 import { errorProxy } from './utils/errorProxy.js'
 import { updateProxy } from './utils/updateProxy.js'
 import { errorsWatcher } from './utils/errorsWatcher.js'
@@ -43,7 +43,7 @@ export function useForm<T extends object = any>(
   const formValue = useRef(
     defaultFormValue !== undefined
       ? { value: { ...defaultFormValue } }
-      : { value: {} as DeepPartial<T> }
+      : { value: {} }
   )
 
   const formErrors = useRef(errorProxy())
@@ -103,6 +103,10 @@ export function useForm<T extends object = any>(
     let isValid = true
     const mssg: string[] = []
     const value = getValue(path)
+
+    if (typeof ref.validation === 'function') {
+      ref.validation = [{ fn: ref.validation, message: ref.message }]
+    }
 
     await Promise.all([
       ...ref?.validation?.map(async ({ fn, message }) => {
@@ -231,6 +235,7 @@ export function useForm<T extends object = any>(
       value,
       validation = [],
       required,
+      message,
     } = options
 
     let defaultValue = options.defaultValue ?? get(defaultFormValue, name)
@@ -279,6 +284,7 @@ export function useForm<T extends object = any>(
             validation,
             required,
             transform,
+            message,
           }
           // @ts-expect-error type
           refEl.current.set(name, newRef)
