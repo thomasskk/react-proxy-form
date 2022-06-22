@@ -1,4 +1,5 @@
 import type { ChangeEvent, HTMLInputTypeAttribute } from 'react'
+import { useForm } from '../useForm.js'
 import type { DeepPartial, Path, PropertyType } from './utils.js'
 
 export type Primitive =
@@ -16,11 +17,24 @@ export type eventEl =
   | ChangeEvent<HTMLSelectElement>
   | ChangeEvent<null>
 
+export type SchemaValidation<T = any> = <V = T>(
+  value: V
+) =>
+  | Promise<{
+      errors: Map<string, string>
+      type?: T
+    }>
+  | {
+      errors: Map<string, string>
+      type?: T
+    }
+
 export type UseFormProps<T extends object = any> = {
   defaultValue?: DeepPartial<T>
   autoUnregister?: boolean
   resetOnSubmit?: boolean
   isValidation?: boolean
+  validation?: SchemaValidation<T>
 }
 
 export type SetValue<T> = <P extends Path<T>>(

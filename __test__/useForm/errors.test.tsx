@@ -68,6 +68,64 @@ describe('useForm', () => {
       expect(screen.queryByText('error b')).toBeNull()
     })
 
+    test('error messages should disappear when typing the right value with global validation', async () => {
+      let methods: UseFormReturn
+
+      const cb = vi.fn()
+
+      const Component = () => {
+        methods = useForm({
+          validation: (v) => {
+            const map = new Map()
+            if (v.a !== 'bar') {
+              map.set('a', 'error a')
+            }
+            if (v.b !== 'bar') {
+              map.set('a', 'error b')
+            }
+            return { errors: map }
+          },
+        })
+
+        const errs = methods.errors()
+        return (
+          <>
+            <input {...methods.register('a')} />
+            {errs.a && <div>{errs.a[0]}</div>}
+            <input {...methods.register('b')} />
+            {errs.b && <div>{errs.b[0]}</div>}
+          </>
+        )
+      }
+      render(<Component />)
+
+      expect(screen.queryByText('error a')).toBeNull()
+      expect(screen.queryByText('error b')).toBeNull()
+
+      await act(async () => methods.handleSubmit()())
+
+      expect(screen.queryByText('error a')).toBeDefined()
+      expect(screen.queryByText('error b')).toBeDefined()
+
+      const inputA = screen.getAllByRole('textbox')[0]
+      const inputB = screen.getAllByRole('textbox')[1]
+
+      await userEvent.type(inputA, 'bar')
+
+      expect(screen.queryByText('error a')).toBeNull()
+
+      await userEvent.type(inputB, 'bar')
+
+      expect(screen.queryByText('error a')).toBeNull()
+
+      await act(async () => methods.handleSubmit(cb())())
+
+      expect(cb).toHaveBeenCalledTimes(1)
+
+      expect(screen.queryByText('error a')).toBeNull()
+      expect(screen.queryByText('error b')).toBeNull()
+    })
+
     test('validation depending on other field', async () => {
       let methods: UseFormReturn
 

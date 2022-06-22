@@ -13,18 +13,18 @@ import type {
 } from './types/index.js'
 import type { Path } from './types/utils.js'
 import { errorProxy } from './utils/errorProxy.js'
-import { updateProxy } from './utils/updateProxy.js'
 import { errorsWatcher } from './utils/errorsWatcher.js'
 import { get } from './utils/get.js'
-import { set } from './utils/set.js'
-import { unset } from './utils/unset.js'
-import { watcher } from './utils/watcher.js'
 import {
   refreshSymbol,
   resetSymbol,
   updateGlbobalSymbol,
   updateSymbol,
 } from './utils/proxySymbol.js'
+import { set } from './utils/set.js'
+import { unset } from './utils/unset.js'
+import { updateProxy } from './utils/updateProxy.js'
+import { watcher } from './utils/watcher.js'
 
 export function useForm<T extends object = any>(
   props: UseFormProps<T> = {}
@@ -33,6 +33,7 @@ export function useForm<T extends object = any>(
     isValidation = true,
     autoUnregister = false,
     resetOnSubmit = true,
+    validation,
   } = props
 
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
@@ -116,6 +117,14 @@ export function useForm<T extends object = any>(
         }
       }),
     ])
+
+    if (validation) {
+      const errMssg = (await validation(values)).errors.get(path)
+      if (errMssg) {
+        isValid = false
+        mssg.push(errMssg)
+      }
+    }
 
     if (ref?.required) {
       if (value === undefined || value === null || value === '') {
