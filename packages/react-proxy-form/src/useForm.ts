@@ -119,7 +119,7 @@ export function useForm<T extends object = any>(
     ])
 
     if (validation) {
-      const errMssg = (await validation(values)).errors.get(path)
+      const errMssg = (await validation(path, value)).errors.get(path)
       if (errMssg) {
         isValid = false
         mssg.push(errMssg)

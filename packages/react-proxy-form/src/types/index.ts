@@ -16,8 +16,9 @@ export type eventEl =
   | ChangeEvent<HTMLSelectElement>
   | ChangeEvent<null>
 
-export type SchemaValidation<T = any> = <V = T>(
-  value: V
+export type SchemaValidation<T = any> = <P extends Path<T>, V = T>(
+  path: P,
+  value: PropertyType<T, P>
 ) =>
   | Promise<{
       errors: Map<string, string>
