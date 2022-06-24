@@ -205,7 +205,7 @@ export function useForm<T extends object = any>(
       }
 
       if (entry.type === 'radio') {
-        if (element.checked) {
+        if (element?.checked) {
           return set(
             formValue.current.value,
             name,
