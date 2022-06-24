@@ -25,7 +25,6 @@ import { set } from './utils/set'
 import { unset } from './utils/unset'
 import { updateProxy } from './utils/updateProxy'
 import { watcher } from './utils/watcher'
-import { resolver } from '@react-proxy-form/resolvers'
 
 export function useForm<T extends object = any>(
   props: UseFormProps<T> = {}
