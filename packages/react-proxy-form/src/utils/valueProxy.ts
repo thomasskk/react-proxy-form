@@ -14,7 +14,8 @@ export const valueProxy = <
       // if key is not in keys => normal behavior
 
       if (!keys.includes(property)) {
-        return (target[property] = value)
+        target[property] = value
+        return true
       }
 
       // if the previous value is undefined and the new one too => delete

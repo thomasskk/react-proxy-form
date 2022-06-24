@@ -1,0 +1,11 @@
+{
+  "exclude": ["node_modules"],
+  "references": [
+    {
+      "path": "packages/react-proxy-form"
+    },
+    {
+      "path": "packages/resolvers"
+    }
+  ]
+}

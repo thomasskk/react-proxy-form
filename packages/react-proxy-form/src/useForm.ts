@@ -25,6 +25,7 @@ import { set } from './utils/set'
 import { unset } from './utils/unset'
 import { updateProxy } from './utils/updateProxy'
 import { watcher } from './utils/watcher'
+import { resolver } from '@react-proxy-form/resolvers'
 
 export function useForm<T extends object = any>(
   props: UseFormProps<T> = {}
@@ -110,7 +111,7 @@ export function useForm<T extends object = any>(
     }
 
     await Promise.all([
-      ...ref?.validation?.map(async ({ fn, message }) => {
+      ...ref.validation.map(async ({ fn, message }) => {
         if (!(await fn(value, values))) {
           isValid = false
           mssg.push(message || 'Validation failed')
@@ -126,7 +127,7 @@ export function useForm<T extends object = any>(
       }
     }
 
-    if (ref?.required) {
+    if (ref.required) {
       if (value === undefined || value === null || value === '') {
         isValid = false
         mssg.push(
@@ -204,12 +205,15 @@ export function useForm<T extends object = any>(
         continue
       }
 
-      if (entry.type === 'radio' && element.checked) {
-        return set(
-          formValue.current.value,
-          name,
-          transform(element?.value, element)
-        )
+      if (entry.type === 'radio') {
+        if (element.checked) {
+          return set(
+            formValue.current.value,
+            name,
+            transform(element?.value, element)
+          )
+        }
+        continue
       }
 
       if (element?.value === undefined) {
