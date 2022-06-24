@@ -78,7 +78,7 @@ export function useForm<T extends object = any>(
 
   const getAllValue = () => {
     for (const entry of refEl.current) {
-      if (autoUnregister && !entry[1].elements.has(null)) {
+      if (autoUnregister && entry[1].elements.has(null)) {
         unset(formValue.current.value, entry[0])
       }
     }
