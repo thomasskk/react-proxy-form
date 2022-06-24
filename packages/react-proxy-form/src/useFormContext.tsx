@@ -10,7 +10,7 @@ type Props<T extends object> = {
   children: React.ReactNode
 } & UseFormReturn<T>
 
-export const FormProvider = <T extends object>(props: Props<T>) => {
+export const FormProvider = <T extends object = any>(props: Props<T>) => {
   const { children, ...rest } = props
   return (
     // @ts-expect-error type

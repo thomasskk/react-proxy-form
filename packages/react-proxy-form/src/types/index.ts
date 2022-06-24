@@ -87,7 +87,7 @@ type ValidationFn<T, P extends Path<T>> = (
 export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
   defaultValue?: PropertyType<T, P>
-  onChange?: (event: eventEl) => void | Promise<void>
+  onChange?: (event: eventEl, value: PropertyType<T, P>) => void | Promise<void>
   defaultChecked?: boolean
   transform?: (value: PropertyType<T, P>, el?: Element) => unknown
   value?: PropertyType<T, P>
@@ -96,13 +96,13 @@ export type UseFormRegisterOptions<T, P extends Path<T>> = {
   required?: string | boolean
 }
 
-export type UseFormRegister<T> = <P extends Path<T>>(
+export type UseFormRegister<T = any> = <P extends Path<T>>(
   _name: P,
   _options?: UseFormRegisterOptions<T, P>
 ) => UseFormRegisterReturn<T, P>
 
 export type UseFormRegisterReturn<T = any, P extends Path<T> = any> = {
-  onChange: (event: eventEl) => Promise<void>
+  onChange: (event: eventEl, value: PropertyType<T, P>) => Promise<void>
   ref: (el: Element) => void
   name: string
   defaultValue?: PropertyType<T, P>

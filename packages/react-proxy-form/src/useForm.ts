@@ -280,7 +280,7 @@ export function useForm<T extends object = any>(
           updateStore.current[name as string] = { code: updateSymbol }
         }
 
-        await onChange?.(event)
+        await onChange?.(event, getValue(name))
       },
       ref: (element: Element) => {
         const refElValue = refEl.current.get(name)
