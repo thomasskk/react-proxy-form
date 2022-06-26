@@ -42,9 +42,7 @@ export function useForm<T extends object = any>(
   const watchStore = useRef(new Set<string>())
 
   const formValue = useRef(
-    defaultFormValue !== undefined
-      ? { value: { ...defaultFormValue } }
-      : { value: {} }
+    defaultFormValue !== undefined ? { v: { ...defaultFormValue } } : { v: {} }
   )
 
   const formErrors = useRef(errorProxy())
@@ -57,12 +55,15 @@ export function useForm<T extends object = any>(
 
   const refEl = useRef<Map<Path<T>, RefElValue<T, Path<T>>>>(new Map())
 
+  const isDirty = useRef<Set<string>>(new Set())
+
   const reset = () => {
-    formValue.current.value =
+    formValue.current.v =
       defaultFormValue !== undefined ? { ...defaultFormValue } : {}
     isDefaultSet.current = false
     isPrevValid.current = false
     refEl.current = new Map()
+    isDirty.current = new Set()
     formErrors.current = errorProxy()
     updateStore.current = updateProxy()
     forceUpdate()
@@ -71,29 +72,22 @@ export function useForm<T extends object = any>(
   const setDefaultValue: SetDefaultValue<T> = (value) => {
     if (!isDefaultSet.current) {
       isDefaultSet.current = true
-      formValue.current.value = { ...value }
+      formValue.current.v = { ...value }
       setdefaultFormValue(value)
     }
   }
 
   const getAllValue = () => {
-    for (const entry of refEl.current) {
-      if (autoUnregister && entry[1].elements.has(null)) {
-        unset(formValue.current.value, entry[0])
-      }
-    }
-    return formValue.current.value as T
+    return formValue.current.v as T
   }
 
   const getValue: GetValue<T> = (path) => {
-    if (autoUnregister && refEl.current.get(path)?.elements.has(null)) {
-      return
-    }
-    return get(formValue.current.value, path)
+    return get(formValue.current.v, path)
   }
 
   const setValue: SetValue<T> = (name, value) => {
-    return set(formValue.current.value, name, value)
+    isDirty.current.add(name)
+    return set(formValue.current.v, name, value)
   }
 
   const validate = async (
@@ -174,7 +168,7 @@ export function useForm<T extends object = any>(
 
   const watch: Watch<T> = (path, opts) => {
     return watcher(
-      formValue.current.value,
+      formValue.current,
       path,
       updateStore.current,
       watchStore.current,
@@ -184,7 +178,8 @@ export function useForm<T extends object = any>(
 
   const setFormValue = <N extends Path<T>>(
     entry: RefElValue<T, N> | undefined,
-    name: N
+    name: N,
+    isUpdate = false
   ) => {
     if (!entry) {
       return
@@ -192,38 +187,36 @@ export function useForm<T extends object = any>(
 
     const { elements, type, transform } = entry
 
-    let value: unknown[] = []
+    const value: Map<string, unknown> = new Map()
 
-    for (const element of elements.values() as IterableIterator<HTMLInputElement>) {
+    for (const [key, element] of elements as Map<string, HTMLInputElement>) {
+      const v = element?.value ?? element?.defaultValue
+
       if (type === 'checkbox') {
         if (element?.checked) {
-          value.push(transform(element?.value, element))
+          value.set(key, transform(v, element))
         } else {
-          value = value?.filter((v) => v !== transform(element?.value, element))
+          value.delete(key)
         }
         continue
       }
 
       if (entry.type === 'radio') {
         if (element?.checked) {
-          return set(
-            formValue.current.value,
-            name,
-            transform(element?.value, element)
-          )
+          return set(formValue.current.v, name, transform(v, element), isUpdate)
         }
         continue
       }
 
-      if (element?.value === undefined) {
-        set(formValue.current.value, name, undefined)
+      if (v === undefined) {
+        set(formValue.current.v, name, undefined, isUpdate)
       } else {
-        set(formValue.current.value, name, transform(element?.value, element))
+        set(formValue.current.v, name, transform(v, element), isUpdate)
       }
       return
     }
 
-    set(formValue.current.value, name, value)
+    set(formValue.current.v, name, [...value.values()], isUpdate)
   }
 
   const handleSubmit: HandleSubmit<T> = (callback) => async (e) => {
@@ -250,13 +243,11 @@ export function useForm<T extends object = any>(
       message,
     } = options
 
+    const isDirtyBool = isDirty.current.has(name)
     let defaultValue = options.defaultValue ?? get(defaultFormValue, name)
 
-    if (autoUnregister) {
-      defaultValue = defaultValue ?? getValue(name)
-      if (defaultValue !== undefined) {
-        set(formValue.current.value, name, defaultValue)
-      }
+    if (!autoUnregister) {
+      defaultValue = isDirtyBool ? getValue(name) ?? defaultValue : defaultValue
     }
 
     return {
@@ -264,12 +255,18 @@ export function useForm<T extends object = any>(
         type,
         name,
         defaultChecked,
-        value,
-        defaultValue,
+        value: value as any,
+        defaultValue:
+          type === 'checkbox' || type === 'radio' ? undefined : defaultValue,
       },
       onChange: async (event) => {
         const ref = refEl.current.get(name)
+        if (!ref) {
+          return
+        }
+
         setFormValue(ref, name)
+        isDirty.current.delete(name)
 
         if (
           isValidation &&
@@ -287,10 +284,21 @@ export function useForm<T extends object = any>(
       },
       ref: (element: Element) => {
         const refElValue = refEl.current.get(name)
+        const id = name + value
+
+        if (!element) {
+          refElValue?.elements.get(id) && isDirty.current.delete(name)
+          refElValue?.elements.delete(id)
+          if (autoUnregister && refElValue?.elements.size === 0) {
+            refEl.current.delete(name)
+            unset(formValue.current.v, name)
+          }
+          return
+        }
 
         if (!refElValue) {
           const newRef = {
-            elements: new Set([element]),
+            elements: new Map([[id, element]]),
             defaultValue,
             type,
             validation,
@@ -300,10 +308,10 @@ export function useForm<T extends object = any>(
           }
           // @ts-expect-error type
           refEl.current.set(name, newRef)
-          setFormValue(newRef, name)
-        } else if (element && !refElValue.elements.has(element)) {
-          refElValue.elements.add(element)
-          setFormValue(refElValue, name)
+          !isDirtyBool && setFormValue(newRef, name, true)
+        } else {
+          refElValue.elements.set(id, element)
+          !isDirtyBool && setFormValue(refElValue, name, true)
         }
       },
     }

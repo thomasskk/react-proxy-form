@@ -7,7 +7,7 @@ import { UseFormReturn } from '../../src/index'
 describe('useForm', () => {
   describe('submit', () => {
     test('data should reset after submit', async () => {
-      let methods: UseFormReturn
+      let methods!: UseFormReturn
 
       const Component = () => {
         methods = useForm()
@@ -28,7 +28,7 @@ describe('useForm', () => {
     })
 
     test('data should not reset resetOnSubmit=false', async () => {
-      let methods: UseFormReturn
+      let methods!: UseFormReturn
 
       const Component = () => {
         methods = useForm({
@@ -49,7 +49,7 @@ describe('useForm', () => {
     })
 
     test('bypass errors when isValidation=false', async () => {
-      let methods: UseFormReturn
+      let methods!: UseFormReturn
 
       const Component = () => {
         methods = useForm({
@@ -82,7 +82,7 @@ describe('useForm', () => {
     })
 
     test('lock submit on errors by defaut', async () => {
-      let methods: UseFormReturn
+      let methods!: UseFormReturn
 
       const cb = vi.fn()
 

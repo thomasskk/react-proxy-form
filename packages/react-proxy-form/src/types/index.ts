@@ -87,7 +87,10 @@ type ValidationFn<T, P extends Path<T>> = (
 export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
   defaultValue?: PropertyType<T, P>
-  onChange?: (event: eventEl, value: PropertyType<T, P>) => void | Promise<void>
+  onChange?: (
+    event: eventEl,
+    value?: PropertyType<T, P>
+  ) => void | Promise<void>
   defaultChecked?: boolean
   transform?: (value: PropertyType<T, P>, el?: Element) => unknown
   value?: PropertyType<T, P>
@@ -97,12 +100,12 @@ export type UseFormRegisterOptions<T, P extends Path<T>> = {
 }
 
 export type UseFormRegister<T = any> = <P extends Path<T>>(
-  _name: P,
-  _options?: UseFormRegisterOptions<T, P>
+  name: P,
+  options?: UseFormRegisterOptions<T, P>
 ) => UseFormRegisterReturn<T, P>
 
 export type UseFormRegisterReturn<T = any, P extends Path<T> = any> = {
-  onChange: (event: eventEl, value: PropertyType<T, P>) => Promise<void>
+  onChange: (event: eventEl, value?: PropertyType<T, P>) => Promise<void> | void
   ref: (el: Element) => void
   name: string
   defaultValue?: PropertyType<T, P>
@@ -127,10 +130,10 @@ export type Element =
 
 export type RefElValue<T, P extends Path<T>> = {
   defaultValue: object
-  elements: Set<Element>
+  elements: Map<string, Element>
   type: InputType
-  validation?: ValidationArray<T, P> | ValidationFn<T, P>
+  validation: ValidationArray<T, P> | ValidationFn<T, P>
   message?: string
   required?: string | boolean
-  transform?: (value: any, el?: Element) => any
+  transform: (value: any, el?: Element) => any
 }

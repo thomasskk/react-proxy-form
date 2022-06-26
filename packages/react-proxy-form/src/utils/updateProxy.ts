@@ -13,7 +13,11 @@ export const updateProxy = () =>
       s: new Map<string | symbol, () => void>(),
     },
     {
-      set: (target, property, value: ProxyCode) => {
+      set: (
+        target: Record<string | symbol, any>,
+        property,
+        value: ProxyCode
+      ) => {
         switch (value.code) {
           case setSymbol:
             target.s.set(property, value.cb)

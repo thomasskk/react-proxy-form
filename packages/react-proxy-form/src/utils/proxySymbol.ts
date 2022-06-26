@@ -7,6 +7,7 @@ export const deleteSymbol = Symbol('dlt')
 export const updateAllSymbol = Symbol('upa')
 export const setGlobalSymbol = Symbol('sgb')
 export const updateGlbobalSymbol = Symbol('ugb')
+export const noUpdateProxy = Symbol('nup')
 
 export type ProxyCode =
   | { code: typeof setSymbol; cb: () => void }
@@ -18,6 +19,7 @@ export type ProxyCode =
   | { code: typeof refreshSymbol }
   | { code: typeof resetAndUpdateSymbol }
   | { code: typeof updateGlbobalSymbol }
+  | { code?: typeof noUpdateProxy; value: any }
 
 export const isProxy = Symbol('_PROXY_')
 export const proxyKeys = Symbol('_KEYS_')

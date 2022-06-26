@@ -1,21 +1,23 @@
 import { dotPathReader } from './dotPathReader'
 import { isObject } from './isHelper'
-import { isProxy } from './proxySymbol'
+import { isProxy, noUpdateProxy } from './proxySymbol'
 
 export const set = (
-  object: object,
+  object: Record<string, any>,
   path: string,
   value?: unknown,
+  noUpdate = false,
   offset = 1
 ) => {
   const arrPath = dotPathReader(path)
   const length = arrPath.length
 
-  arrPath.reduce((acc, cv, index) => {
+  arrPath.reduce((acc: any, cv, index) => {
     switch (true) {
       case index === length - offset:
         if (value !== undefined) {
-          acc[cv] = value
+          acc[cv] =
+            noUpdate && acc?.[isProxy] ? { code: noUpdateProxy, value } : value
         } else {
           delete acc[cv]
         }

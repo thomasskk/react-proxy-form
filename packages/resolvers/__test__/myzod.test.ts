@@ -21,7 +21,7 @@ describe('myzod', () => {
       })
     )(path, {}).errors.get(path)
 
-    expect(error).toBeDefined()
+    expect(error).toBeTruthy()
   })
   test('depth 1 array succeed', () => {
     const path = 'a.[0]'
@@ -41,7 +41,7 @@ describe('myzod', () => {
       })
     )(path, {}).errors.get(path)
 
-    expect(error).toBeDefined()
+    expect(error).toBeTruthy()
   })
   test('depth 2 object succeed', () => {
     const path = 'a.b'
@@ -65,7 +65,7 @@ describe('myzod', () => {
       })
     )(path, {}).errors.get(path)
 
-    expect(error).toBeDefined()
+    expect(error).toBeTruthy()
   })
   test('depth 2 array succeed', () => {
     const path = 'a.[0].[0]'
@@ -85,6 +85,6 @@ describe('myzod', () => {
       })
     )(path, {}).errors.get(path)
 
-    expect(error).toBeDefined()
+    expect(error).toBeTruthy()
   })
 })

@@ -1,8 +1,8 @@
-import React from 'react'
-import { describe, test, expect } from 'vitest'
 import { render, renderHook, screen } from '@testing-library/react'
-import { useForm } from '../../src/useForm'
 import userEvent from '@testing-library/user-event'
+import React from 'react'
+import { describe, expect, test } from 'vitest'
+import { useForm } from '../../src/useForm'
 
 describe('useForm', () => {
   describe('register', () => {
@@ -75,28 +75,7 @@ describe('useForm', () => {
       expect(methods.getAllValue()).toEqual({ a: { b: [1] } })
     })
 
-    test('should set prev value on remount when autoRegister=true', () => {
-      const { result, unmount } = renderHook(() =>
-        useForm({
-          autoUnregister: true,
-          defaultValue: { a: 1 },
-        })
-      )
-
-      result.current.register('a')
-
-      result.current.setValue('a', 2)
-
-      result.current.register('a')
-
-      unmount()
-
-      result.current.register('a')
-
-      expect(result.current.getAllValue()).toEqual({ a: 1 })
-    })
-
-    test('should set default value on remount when autoRegister=false', () => {
+    test('should set default value on remount when autoUnregister=false', () => {
       const { result, unmount } = renderHook(() =>
         useForm({
           autoUnregister: false,
@@ -115,7 +94,7 @@ describe('useForm', () => {
       expect(result.current.getAllValue()).toEqual({ a: 2 })
     })
 
-    test('should set default value on remount when autoRegister=false', () => {
+    test('should set default value on remount when autoUnregister=false', () => {
       const { result, unmount } = renderHook(() =>
         useForm({
           autoUnregister: false,

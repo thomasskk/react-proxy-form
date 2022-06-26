@@ -8,28 +8,41 @@ import type { ProxyCode as PC } from './proxySymbol'
 import { setSymbol } from './proxySymbol'
 
 export const watcher = (
-  object: object,
+  object: {
+    v: Record<string | symbol, any>
+  },
   path: string,
-  updateStore: object,
+  updateStore: Record<string | symbol, any>,
   watchStore: Set<string>,
-  defaultValue?: object
+  defaultValue?: Record<string | symbol, any>
 ) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
   const key = useRef<string | symbol | number>('d')
-  const value = useRef<object>({ d: defaultValue ?? get(object, path) })
+  const value = useRef<Record<string | symbol, any> | undefined>({
+    d: defaultValue ?? get(object.v, path),
+  })
 
   useEffect(() => {
     const setProxyFn = () => {
       const arrPath = dotPathReader(path)
       key.current = arrPath[arrPath.length - 1]
+
       arrPath.reduce((acc, cv, index) => {
-        if (index === arrPath.length - 2 || arrPath.length === 1) {
+        if (arrPath.length === 1) {
           // keys array to determine which property is watched
-          const keys = object[proxyKeys] || []
+          const keys = acc[proxyKeys] || []
+          keys.push(key.current)
+
+          object.v = valueProxy({ ...object.v }, forceUpdate, keys)
+
+          value.current = object.v
+        }
+        if (index === arrPath.length - 2) {
+          const keys = acc[cv]?.[proxyKeys] || []
           keys.push(key.current)
 
           acc[cv] = valueProxy(
-            isObject(acc[cv]) ? { ...acc[cv] } : acc[cv],
+            isObject(acc[cv]) ? { ...acc[cv] } : [...acc[cv]],
             forceUpdate,
             keys
           )
@@ -37,7 +50,7 @@ export const watcher = (
           value.current = acc[cv]
         }
         return acc[cv]
-      }, object)
+      }, object.v)
     }
 
     if (value.current?.[key.current] === undefined) {

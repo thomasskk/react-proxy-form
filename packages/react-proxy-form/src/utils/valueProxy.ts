@@ -1,8 +1,8 @@
-import { isProxy, proxyKeys } from './proxySymbol'
+import { isProxy, noUpdateProxy, proxyKeys } from './proxySymbol'
 
 // trigger cb on set when property is in keys and its value is changed
 export const valueProxy = <
-  T extends object | unknown[],
+  T extends Record<string | symbol, unknown> | unknown[],
   K extends (string | symbol)[]
 >(
   proxyValue: T,
@@ -10,9 +10,13 @@ export const valueProxy = <
   keys: K
 ) => {
   return new Proxy(proxyValue, {
-    set: (target, property, value) => {
-      // if key is not in keys => normal behavior
+    set: (target: any, property, value) => {
+      if (value?.code === noUpdateProxy) {
+        target[property] = value.value
+        return true
+      }
 
+      // if key is not in keys => normal behavior
       if (!keys.includes(property)) {
         target[property] = value
         return true

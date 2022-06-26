@@ -36,14 +36,12 @@ export const errorProxy = () => {
             }
             break
           case updateSymbol:
-            const UPDATE_cb = target.i.get(property)
             target.m.set(property, value.value)
-            UPDATE_cb?.()
+            target.i.get(property)?.()
             break
           case refreshSymbol:
             target.m.delete(property)
-            const REFRESH_cb = target.i.get(property)
-            REFRESH_cb?.()
+            target.i.get(property)?.()
             break
           case resetSymbol:
             target.m = new Map()
@@ -59,7 +57,7 @@ export const errorProxy = () => {
             }
             break
           default:
-            target[property] = value
+            target[property as keyof typeof target] = value
             return true
         }
 
@@ -75,5 +73,5 @@ export const errorProxy = () => {
           : target.m.get(property)
       },
     }
-  ) as object
+  ) as Record<string, any>
 }

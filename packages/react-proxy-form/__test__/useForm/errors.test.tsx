@@ -46,8 +46,8 @@ describe('useForm', () => {
 
       await act(async () => methods.handleSubmit()())
 
-      expect(screen.queryByText('error a')).toBeDefined()
-      expect(screen.queryByText('error b')).toBeDefined()
+      expect(screen.queryByText('error a')).toBeTruthy()
+      expect(screen.queryByText('error b')).toBeTruthy()
 
       const inputA = screen.getAllByRole('textbox')[0]
       const inputB = screen.getAllByRole('textbox')[1]
@@ -75,13 +75,10 @@ describe('useForm', () => {
 
       const Component = () => {
         methods = useForm({
-          validation: (v) => {
+          validation: (path, value) => {
             const map = new Map()
-            if (v.a !== 'bar') {
-              map.set('a', 'error a')
-            }
-            if (v.b !== 'bar') {
-              map.set('a', 'error b')
+            if (value !== 'bar') {
+              map.set(path, `error ${path}`)
             }
             return { errors: map }
           },
@@ -91,9 +88,9 @@ describe('useForm', () => {
         return (
           <>
             <input {...methods.register('a')} />
-            {errs.a && <div>{errs.a[0]}</div>}
+            {errs.a?.[0] && <div>{errs.a[0]}</div>}
             <input {...methods.register('b')} />
-            {errs.b && <div>{errs.b[0]}</div>}
+            {errs.b?.[0] && <div>{errs.b[0]}</div>}
           </>
         )
       }
@@ -104,8 +101,8 @@ describe('useForm', () => {
 
       await act(async () => methods.handleSubmit()())
 
-      expect(screen.queryByText('error a')).toBeDefined()
-      expect(screen.queryByText('error b')).toBeDefined()
+      expect(screen.queryByText('error a')).toBeTruthy()
+      expect(screen.queryByText('error b')).toBeTruthy()
 
       const inputA = screen.getAllByRole('textbox')[0]
       const inputB = screen.getAllByRole('textbox')[1]
@@ -127,7 +124,7 @@ describe('useForm', () => {
     })
 
     test('validation depending on other field', async () => {
-      let methods: UseFormReturn
+      let methods!: UseFormReturn
 
       const Component = () => {
         methods = useForm()
@@ -152,7 +149,7 @@ describe('useForm', () => {
         )
       }
 
-      render(<Component />)
+      const { unmount } = render(<Component />)
 
       methods.setValue('b', 'bar')
 
