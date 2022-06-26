@@ -88,9 +88,14 @@ export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
   defaultValue?: PropertyType<T, P>
   onChange?: (
-    event: eventEl,
+    element: Element,
     value?: PropertyType<T, P>
   ) => void | Promise<void>
+  onMount?: (
+    element: Element,
+    value?: PropertyType<T, P>
+  ) => void | Promise<void>
+  onUnmount?: (element: Element) => void | Promise<void>
   defaultChecked?: boolean
   transform?: (value: PropertyType<T, P>, el?: Element) => unknown
   value?: PropertyType<T, P>

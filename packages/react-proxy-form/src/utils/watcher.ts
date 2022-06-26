@@ -14,6 +14,7 @@ export const watcher = (
   path: string,
   updateStore: Record<string | symbol, any>,
   watchStore: Set<string>,
+  resetRef: number,
   defaultValue?: Record<string | symbol, any>
 ) => {
   const forceUpdate = useReducer((c) => c + 1, 0)[1]
@@ -79,7 +80,7 @@ export const watcher = (
       watchStore.delete(path)
       updateStore[path] = <PC>{ code: deleteSymbol }
     }
-  }, [])
+  }, [resetRef])
 
   return value.current?.[key.current]
 }

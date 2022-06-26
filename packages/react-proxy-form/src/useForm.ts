@@ -41,6 +41,8 @@ export function useForm<T extends object = any>(
 
   const watchStore = useRef(new Set<string>())
 
+  const resetRef = useRef(0)
+
   const formValue = useRef(
     defaultFormValue !== undefined ? { v: { ...defaultFormValue } } : { v: {} }
   )
@@ -51,21 +53,22 @@ export function useForm<T extends object = any>(
 
   const isDefaultSet = useRef(false)
 
-  const isPrevValid = useRef(false)
-
   const refEl = useRef<Map<Path<T>, RefElValue<T, Path<T>>>>(new Map())
 
   const isDirty = useRef<Set<string>>(new Set())
 
   const reset = () => {
-    formValue.current.v =
-      defaultFormValue !== undefined ? { ...defaultFormValue } : {}
+    formValue.current =
+      defaultFormValue !== undefined
+        ? { v: { ...defaultFormValue } }
+        : { v: {} }
     isDefaultSet.current = false
-    isPrevValid.current = false
-    refEl.current = new Map()
-    isDirty.current = new Set()
     formErrors.current = errorProxy()
+    refEl.current = new Map()
+    watchStore.current = new Set()
     updateStore.current = updateProxy()
+    isDirty.current = new Set()
+    resetRef.current += 1
     forceUpdate()
   }
 
@@ -161,8 +164,6 @@ export function useForm<T extends object = any>(
       formErrors.current[''] = { code: updateGlbobalSymbol }
     }
 
-    isPrevValid.current = isValid
-
     return isValid
   }
 
@@ -172,6 +173,7 @@ export function useForm<T extends object = any>(
       path,
       updateStore.current,
       watchStore.current,
+      resetRef.current,
       opts?.defaultValue as object
     )
   }
@@ -184,6 +186,7 @@ export function useForm<T extends object = any>(
     const { elements, type, transform } = entry
 
     const value: Map<string, unknown> = new Map()
+    const isRadio = entry.type === 'radio'
 
     for (const [key, element] of elements as Map<string, HTMLInputElement>) {
       const v = element.value ?? element.defaultValue
@@ -197,7 +200,7 @@ export function useForm<T extends object = any>(
         continue
       }
 
-      if (entry.type === 'radio') {
+      if (isRadio) {
         if (element?.checked) {
           return set(formValue.current.v, name, transform(v, element), isUpdate)
         }
@@ -205,6 +208,10 @@ export function useForm<T extends object = any>(
       }
 
       return set(formValue.current.v, name, transform(v, element), isUpdate)
+    }
+
+    if (isRadio) {
+      return
     }
 
     set(formValue.current.v, name, [...value.values()], isUpdate)
@@ -232,6 +239,8 @@ export function useForm<T extends object = any>(
       validation = [],
       required,
       message,
+      onUnmount,
+      onMount,
     } = options
 
     const isDirtyBool = isDirty.current.has(name)
@@ -271,20 +280,22 @@ export function useForm<T extends object = any>(
           updateStore.current[name as string] = { code: updateSymbol }
         }
 
-        await onChange?.(event, getValue(name))
+        await onChange?.(event.currentTarget, getValue(name))
       },
-      ref: (element: Element) => {
+      ref: async (element: Element) => {
         const refElValue = refEl.current.get(name)
         const id = name + value
 
         if (!element) {
-          refElValue?.elements.get(id) && isDirty.current.delete(name)
+          autoUnregister &&
+            refElValue?.elements.get(id) &&
+            isDirty.current.delete(name)
           refElValue?.elements.delete(id)
           if (autoUnregister && refElValue?.elements.size === 0) {
             refEl.current.delete(name)
             unset(formValue.current.v, name)
           }
-          return
+          return onUnmount?.(element)
         }
 
         if (!refElValue) {
@@ -304,6 +315,8 @@ export function useForm<T extends object = any>(
           refElValue.elements.set(id, element)
           !isDirtyBool && setFormValue(refElValue, name, true)
         }
+
+        await onMount?.(element, getValue(name))
       },
     }
   }
@@ -312,8 +325,8 @@ export function useForm<T extends object = any>(
     register,
     reset,
     watch,
-    errors: () => errorsWatcher(formErrors.current),
-    error: (path) => errorsWatcher(formErrors.current, path),
+    errors: () => errorsWatcher(formErrors.current, resetRef.current),
+    error: (path) => errorsWatcher(formErrors.current, resetRef.current, path),
     handleSubmit,
     setValue,
     getValue,
