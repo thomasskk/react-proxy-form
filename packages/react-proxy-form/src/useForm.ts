@@ -177,20 +177,16 @@ export function useForm<T extends object = any>(
   }
 
   const setFormValue = <N extends Path<T>>(
-    entry: RefElValue<T, N> | undefined,
+    entry: RefElValue<T, N>,
     name: N,
     isUpdate = false
   ) => {
-    if (!entry) {
-      return
-    }
-
     const { elements, type, transform } = entry
 
     const value: Map<string, unknown> = new Map()
 
     for (const [key, element] of elements as Map<string, HTMLInputElement>) {
-      const v = element?.value ?? element?.defaultValue
+      const v = element.value ?? element.defaultValue
 
       if (type === 'checkbox') {
         if (element?.checked) {
@@ -208,12 +204,7 @@ export function useForm<T extends object = any>(
         continue
       }
 
-      if (v === undefined) {
-        set(formValue.current.v, name, undefined, isUpdate)
-      } else {
-        set(formValue.current.v, name, transform(v, element), isUpdate)
-      }
-      return
+      return set(formValue.current.v, name, transform(v, element), isUpdate)
     }
 
     set(formValue.current.v, name, [...value.values()], isUpdate)
