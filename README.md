@@ -2,7 +2,7 @@
 
 ---
 
-- 2.2 kB gzipped
+- 2.4 kB gzipped
 - Strongly typed
 - Error re-render can be scoped to the component
 - Fully asynchronous
@@ -26,10 +26,9 @@ function Form() {
       <input
         {...register('age', {
           required: true,
-          valueAs: Number,
-          validation: [
-            { fn: (v) => v >= 18, message: 'You must be at least 18' },
-          ],
+          transform: Number,
+          validation: (v) => v >= 18,
+	  message: 'You must be at least 18'
         })}
       />
       {errs.age && <p> {errs.age[0]} </p>}
@@ -59,11 +58,12 @@ yarn add react-proxy-form
 import { useForm } form 'react-proxy-form'
 
 const Component = () => {
-  const { register } = useForm<{id: number}>({
+  const { register } = useForm<T>({
 	defaultValue: { id: 1 },
 	isValidation: true,
 	resetOnSubmit: true,
 	autoUnregister: false,
+	validation: myzodResolver(schema)
   })
 }
 ```
@@ -79,7 +79,10 @@ options:
 - ##### `autoUnregister?:` boolean = false
   Unregister elements when they unmount.
   If the element remount its defaultValue will be automatically set.
-
+  
+- ##### `validation?:`
+ 
+ 
 ## UseFormReturn\<T\>
 
 #### register
@@ -97,7 +100,9 @@ const Component = () => {
 	type: 'number',
 	defaultValue: 2,
 	transform: (v) => +v,
-	onChange: (e) => console.log(e),
+	onChange: (e, v) => {},
+	onMount: (e, v) => {},
+	onUnmount: (e) => {},
 	validation: [{ fn: (v) => v > 0, message: 'Value must be superior to 0' }]
   })} />
 }
@@ -117,13 +122,21 @@ options:
 
 - ##### `transform?:` (value: P, el: HTMLElement | null) => unknown
 
-- ##### `onChange?:` (event: changeEvent) => void | Promise<void>
+- ##### `onChange?:` (event: HTMLElement | null, value: V) => void | Promise<void>
+	
+- ##### `onMount?:` (event: HTMLElement | null, value: V) => void | Promise<void>
+	
+- ##### `onUnmount?:` (event: HTMLElement | null) => void | Promise<void>
 
 - ##### `defaultChecked?:` boolean
 
 - ##### `value?:` T
 
-- ##### `validation` { fn: (v: P, values: V) => boolean | Promise<boolean>, message?: string }[]
+- ##### `validation?:` { fn: (v: P, values: V) => boolean | Promise<boolean>, message?: string }[] 
+	               | (v: P, values: V) => boolean | Promise<boolean>
+	
+- ##### `message?:` string 
+
 
 #### error
 
@@ -137,7 +150,7 @@ import { useFormContext } form 'react-proxy-form'
 
 const Component = () => {
   const { error } = useFormContext()
-  const err = error()
+  const err = error('id')
 
   return <p>{err[0]}</p>
 }
