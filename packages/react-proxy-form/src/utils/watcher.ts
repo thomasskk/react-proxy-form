@@ -1,11 +1,11 @@
 import { useEffect, useReducer, useRef } from 'react'
-import { valueProxy } from './valueProxy'
+import { deleteSymbol, proxyKeys } from '../utils/proxySymbol'
 import { dotPathReader } from './dotPathReader'
 import { get } from './get'
 import { isObject } from './isHelper'
-import { deleteSymbol, proxyKeys } from '../utils/proxySymbol'
 import type { ProxyCode as PC } from './proxySymbol'
 import { setSymbol } from './proxySymbol'
+import { valueProxy } from './valueProxy'
 
 export const watcher = (
   object: {

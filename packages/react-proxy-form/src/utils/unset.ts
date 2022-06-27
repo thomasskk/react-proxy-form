@@ -1,5 +1,5 @@
 import { dotPathReader } from './dotPathReader'
-import { isObject, isObjWritable } from './isHelper'
+import { isObject } from './isHelper'
 import { isProxy } from './proxySymbol'
 
 export const unset = (object: Record<string, any>, path: string) => {
@@ -36,7 +36,10 @@ export const unset = (object: Record<string, any>, path: string) => {
         }
         break
       case isObject(acc[cv]):
-        if (!isObjWritable(acc, cv) && !acc[cv][isProxy]) {
+        if (
+          !Object.getOwnPropertyDescriptor(acc, cv)?.writable &&
+          !acc[cv][isProxy]
+        ) {
           acc[cv] = { ...acc[cv] }
         }
         break

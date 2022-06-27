@@ -1,11 +1,11 @@
 import {
   deleteSymbol,
+  ProxyCode,
   resetSymbol,
   setSymbol,
   updateAllSymbol,
   updateSymbol,
 } from './proxySymbol'
-import type { ProxyCode } from './proxySymbol'
 
 export const updateProxy = () =>
   new Proxy(

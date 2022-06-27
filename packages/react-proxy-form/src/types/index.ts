@@ -113,10 +113,10 @@ export type UseFormRegisterReturn<T = any, P extends Path<T> = any> = {
   onChange: (event: eventEl, value?: PropertyType<T, P>) => Promise<void> | void
   ref: (el: Element) => void
   name: string
-  defaultValue?: PropertyType<T, P>
+  defaultValue?: string | number | readonly string[] | undefined
   type: InputType
   defaultChecked?: boolean
-  value: PropertyType<T, P>
+  value: string | number | readonly string[] | undefined
 }
 
 export type SubmitHandler<T> = (data: T) => void

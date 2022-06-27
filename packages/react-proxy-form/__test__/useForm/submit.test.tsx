@@ -34,6 +34,7 @@ describe('useForm', () => {
         methods = useForm({
           resetOnSubmit: false,
         })
+
         return <input {...methods.register('a.b')} />
       }
 

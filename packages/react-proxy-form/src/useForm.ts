@@ -98,9 +98,9 @@ export function useForm<T extends object = any>(
     ref: RefElValue<T, Path<T>>,
     values: T
   ) => {
-    let isValid = true
     const mssg: string[] = []
     const value = getValue(path)
+    const isRequired = ref.required
 
     if (typeof ref.validation === 'function') {
       ref.validation = [{ fn: ref.validation, message: ref.message }]
@@ -108,34 +108,25 @@ export function useForm<T extends object = any>(
 
     await Promise.all([
       ...ref.validation.map(async ({ fn, message }) => {
-        if (!(await fn(value, values))) {
-          isValid = false
-          mssg.push(message || 'Validation failed')
-        }
+        !(await fn(value, values)) && mssg.push(message || 'Validation failed')
       }),
     ])
 
     if (validation) {
       const errMssg = (await validation(path, value)).errors.get(path)
-      if (errMssg) {
-        isValid = false
-        mssg.push(errMssg)
-      }
+      errMssg && mssg.push(errMssg)
     }
 
-    if (ref.required) {
-      if (value === undefined || value === null || value === '') {
-        isValid = false
-        mssg.push(
-          typeof ref?.required === 'string' ? ref.required : 'Field required'
-        )
-      }
+    if (isRequired && (value ?? value === '')) {
+      mssg.push(typeof isRequired === 'string' ? isRequired : 'Field required')
     }
 
-    if (isValid) {
-      formErrors.current[path as string] = { code: refreshSymbol }
-    } else {
-      formErrors.current[path as string] = { code: updateSymbol, value: mssg }
+    const isValid = mssg.length === 0
+
+    formErrors.current[path as string] = {
+      code: isValid ? refreshSymbol : updateSymbol,
+      //mssg is ignored for refreshSymbol
+      value: mssg,
     }
 
     return isValid
@@ -143,10 +134,6 @@ export function useForm<T extends object = any>(
 
   const validateAll = async () => {
     let isValid = true
-
-    if (!isValidation) {
-      return true
-    }
 
     formErrors.current[''] = { code: resetSymbol }
 
@@ -218,15 +205,15 @@ export function useForm<T extends object = any>(
   }
 
   const handleSubmit: HandleSubmit<T> = (callback) => async (e) => {
+    e?.preventDefault?.()
+
     if (isValidation && !(await validateAll())) {
       return
     }
 
     await callback?.(getAllValue(), e)
 
-    if (resetOnSubmit) {
-      reset()
-    }
+    resetOnSubmit && reset()
   }
 
   const register: UseFormRegister<T> = (name, options = {}) => {
@@ -261,6 +248,7 @@ export function useForm<T extends object = any>(
       },
       onChange: async (event) => {
         const ref = refEl.current.get(name)
+
         if (!ref) {
           return
         }
@@ -290,11 +278,14 @@ export function useForm<T extends object = any>(
           autoUnregister &&
             refElValue?.elements.get(id) &&
             isDirty.current.delete(name)
+
           refElValue?.elements.delete(id)
+
           if (autoUnregister && refElValue?.elements.size === 0) {
             refEl.current.delete(name)
             unset(formValue.current.v, name)
           }
+
           return onUnmount?.(element)
         }
 
