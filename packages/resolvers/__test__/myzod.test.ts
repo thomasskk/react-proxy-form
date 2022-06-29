@@ -3,6 +3,24 @@ import { resolver } from '../src/myzod'
 import * as z from 'myzod'
 
 describe('myzod', () => {
+  test('record succeed', () => {
+    const path = 'a.b'
+    const error = resolver(z.object({ a: z.record(z.string()) }))(
+      path,
+      ''
+    ).errors.get(path)
+
+    expect(error).toBeUndefined()
+  })
+  test('record fail', () => {
+    const path = 'a.b'
+    const error = resolver(z.object({ a: z.record(z.string()) }))(
+      path,
+      1
+    ).errors.get(path)
+
+    expect(error).toBeTruthy()
+  })
   test('depth 1 object succeed', () => {
     const path = 'a'
     const error = resolver(

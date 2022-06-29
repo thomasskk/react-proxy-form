@@ -11,18 +11,23 @@ export const resolver =
           if (arr[i + 1]) {
             return acc?.schema
           } else {
-            acc.schema.parse(value)
+            return acc.schema.parse(value)
           }
         }
         if (arr[i + 1]) {
           return acc.objectShape[cv]
         } else {
-          acc.objectShape[cv].parse(value)
+          if (acc?._parse?.name === 'parseRecord') {
+            return acc.parse({ value })
+          }
+          return acc.objectShape[cv].parse(value)
         }
       }, schema)
     } catch (err: unknown) {
       if (err instanceof z.ValidationError) {
         errors.set(path, err.message)
+      } else {
+        throw err
       }
     }
 
