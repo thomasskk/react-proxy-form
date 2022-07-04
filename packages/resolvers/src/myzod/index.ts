@@ -22,13 +22,20 @@ const findPath: any = (
     }
     throw err
   }
+
   if (acc?.fn) {
     return acc.fn(value)
   }
 
   if (arr[i + 1]) {
-    if ('schema' in acc) {
+    if (acc.constructor.name === 'ArrayType') {
       return acc.schema
+    }
+    if (acc?.objectShape?.[cv]) {
+      return acc?.objectShape?.[cv]
+    }
+    if (acc?.schema?.objectShape?.[cv]) {
+      return acc.schema.objectShape[cv]
     }
     if (acc?.objectShape?.schemas) {
       return acc.objectShape
@@ -38,14 +45,17 @@ const findPath: any = (
     }
     return acc.objectShape[cv]
   } else {
+    if (acc?.objectShape?.[cv]) {
+      return acc.objectShape[cv].parse(value)
+    }
     if (acc?._parse?.name === 'parseRecord') {
       return acc.parse({ value })
     }
+    if (acc?.schema?._parse?.name === 'parseRecord') {
+      return acc.schema.parse({ value })
+    }
     if (acc?._parse?.name === 'parseObjectConv') {
       return acc.parse(value)
-    }
-    if (acc?.objectShape) {
-      return acc.objectShape[cv].parse(value)
     }
     return acc.schema.parse(value)
   }
