@@ -117,6 +117,7 @@ export type UseFormRegisterReturn<T = any, P extends Path<T> = any> = {
   type: InputType
   defaultChecked?: boolean
   value: string | number | readonly string[] | undefined
+  required?: boolean
 }
 
 export type SubmitHandler<T> = (data: T) => void

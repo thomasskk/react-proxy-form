@@ -100,7 +100,8 @@ export function useForm<T extends object = any>(
   ) => {
     const mssg: string[] = []
     const value = getValue(path)
-    const isRequired = ref.required
+    const isRequired =
+      ref.required || [...ref.elements.values()].some((el) => el?.required)
 
     if (typeof ref.validation === 'function') {
       ref.validation = [{ fn: ref.validation, message: ref.message }]
@@ -242,6 +243,7 @@ export function useForm<T extends object = any>(
         type,
         name,
         defaultChecked,
+        required: !!required ?? undefined,
         value: value as any,
         defaultValue:
           type === 'checkbox' || type === 'radio' ? undefined : defaultValue,
