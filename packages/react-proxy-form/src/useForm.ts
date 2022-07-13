@@ -117,7 +117,7 @@ export function useForm<T extends object = any>(
       errMssg && mssg.push(errMssg)
     }
 
-    if (isRequired && (value ?? value === '')) {
+    if (isRequired && (value === '' || value === undefined || value === null)) {
       mssg.push(typeof isRequired === 'string' ? isRequired : 'Field required')
     }
 
