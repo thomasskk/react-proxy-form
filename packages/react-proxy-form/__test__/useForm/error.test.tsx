@@ -109,7 +109,7 @@ describe('useForm', () => {
 
       await userEvent.type(screen.getByRole('textbox'), 'bar')
 
-      expect(screen.queryByText('error message')).toBeNull()
+      expect(screen.queryByText('Field required')).toBeNull()
     })
   })
 })

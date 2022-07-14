@@ -243,7 +243,7 @@ export function useForm<T extends object = any>(
         type,
         name,
         defaultChecked,
-        required: !!required ?? undefined,
+        required: !!required,
         value: value as any,
         defaultValue:
           type === 'checkbox' || type === 'radio' ? undefined : defaultValue,
