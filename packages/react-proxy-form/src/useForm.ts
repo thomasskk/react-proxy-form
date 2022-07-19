@@ -221,9 +221,12 @@ export function useForm<T extends object = any>(
     const {
       type = 'text',
       onChange,
+      onBlur,
       transform = (v) => v,
       defaultChecked,
       value,
+      revalidateOn = 'change',
+      validateOn = 'submit',
       validation = [],
       required,
       message,
@@ -238,6 +241,18 @@ export function useForm<T extends object = any>(
       defaultValue = isDirtyBool ? getValue(name) ?? defaultValue : defaultValue
     }
 
+    const onEventValidate = async (ref: any, on: string) => {
+      const isPrevError = formErrors.current?.[name as string] !== undefined
+
+      const isRevalidate = isPrevError && revalidateOn === on
+      const isValidate = validateOn === on && !isPrevError
+
+      if (isValidation && (isRevalidate || isValidate)) {
+        await validate(name, ref, getAllValue())
+        formErrors.current[''] = { code: updateGlbobalSymbol }
+      }
+    }
+
     return {
       ...{
         type,
@@ -247,6 +262,16 @@ export function useForm<T extends object = any>(
         value: value as any,
         defaultValue:
           type === 'checkbox' || type === 'radio' ? undefined : defaultValue,
+      },
+      onBlur: async (event) => {
+        const ref = refEl.current.get(name)
+
+        if (!ref) {
+          return
+        }
+        onEventValidate(ref, 'blur')
+
+        await onBlur?.(event.currentTarget, getValue(name))
       },
       onChange: async (event) => {
         const ref = refEl.current.get(name)
@@ -258,13 +283,7 @@ export function useForm<T extends object = any>(
         setFormValue(ref, name)
         isDirty.current.delete(name)
 
-        if (
-          isValidation &&
-          formErrors.current?.[name as string] !== undefined
-        ) {
-          await validate(name, ref, getAllValue())
-          formErrors.current[''] = { code: updateGlbobalSymbol }
-        }
+        onEventValidate(ref, 'change')
 
         if (watchStore.current.has(name)) {
           updateStore.current[name as string] = { code: updateSymbol }

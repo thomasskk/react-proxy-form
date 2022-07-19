@@ -87,7 +87,13 @@ type ValidationFn<T, P extends Path<T>> = (
 export type UseFormRegisterOptions<T, P extends Path<T>> = {
   type?: InputType
   defaultValue?: PropertyType<T, P>
+  validateOn?: 'change' | 'blur' | 'submit'
+  revalidateOn?: 'change' | 'submit' | 'blur'
   onChange?: (
+    element: Element,
+    value?: PropertyType<T, P>
+  ) => void | Promise<void>
+  onBlur?: (
     element: Element,
     value?: PropertyType<T, P>
   ) => void | Promise<void>
@@ -111,6 +117,7 @@ export type UseFormRegister<T = any> = <P extends Path<T>>(
 
 export type UseFormRegisterReturn<T = any, P extends Path<T> = any> = {
   onChange: (event: eventEl, value?: PropertyType<T, P>) => Promise<void> | void
+  onBlur: (event: eventEl, value?: PropertyType<T, P>) => Promise<void> | void
   ref: (el: Element) => void
   name: string
   defaultValue?: string | number | readonly string[] | undefined
