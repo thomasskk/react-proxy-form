@@ -1,6 +1,6 @@
 {
   "name": "react-proxy-form",
-  "version": "1.0.0-rc.9",
+  "version": "1.0.0-rc.10",
   "sideEffects": false,
   "files": [
     "lib"
